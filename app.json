@@ -1,25 +1,47 @@
 {
   "expo": {
-    "name": "IslamicWorshipApp",
-    "slug": "IslamicWorshipApp",
+    "name": "İslami İbadet",
+    "slug": "islamicibadet",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "islamicworshipapp",
-    "userInterfaceStyle": "automatic",
+    "scheme": "islamicibadet",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
+      "package": "com.islamicibadet.app",
+      "versionCode": 10,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCsJqytioV-H-SJGWSGZwQOOdZs-HQblWA"
+        }
+      },
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B0F1A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
+    },
+    "ios": {
+      "supportsTablet": true
     },
     "web": {
       "output": "static",
@@ -28,21 +50,59 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Namaz vakitlerini ve kıble yönünü hesaplamak için konumunuz gereklidir.",
+          "locationWhenInUsePermission": "Namaz vakitlerini ve kıble yönünü hesaplamak için konumunuz gereklidir."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#C8A853"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Paylaşım kartlarını galeriye kaydetmek için izin gereklidir."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0B0F1A",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0B0F1A"
           }
         }
-      ]
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildFeatures": {
+              "buildConfig": true
+            }
+          }
+        }
+      ],
+      "./plugins/withBuildConfig"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "googleMapsApiKey": "AIzaSyCsJqytioV-H-SJGWSGZwQOOdZs-HQblWA",
+      "eas": {
+        "projectId": "12dcac4c-e5c0-400c-b10b-d8d14e699bf8"
+      }
     }
   }
 }

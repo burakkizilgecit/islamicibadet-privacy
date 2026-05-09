@@ -1,0 +1,121 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { COLORS, SPACING, RADIUS, FONT_SIZE, SHADOWS } from '../../constants/theme';
+
+interface MenuItem {
+  id: string; title: string; subtitle: string;
+  icon: string; color: string; route: string; featured?: boolean;
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  { id: 'quran',        title: "Kur'an-ı Kerim",  subtitle: 'Sure oku · Ayet dinle',          icon: 'book-open-variant', color: '#34C759', route: '/quran',            featured: true },
+  { id: 'duas',         title: 'Dualar',           subtitle: 'Günlük dua ve zikirler',         icon: 'hands-pray',        color: COLORS.gold,    route: '/(tabs)/duas' },
+  { id: 'worship',      title: 'İbadet Takip',     subtitle: 'Namaz ve hedef takibi',          icon: 'calendar-check',    color: '#7B61FF',      route: '/worship-tracking' },
+  { id: 'calendar',     title: 'Dini Günler',      subtitle: 'Kandil ve bayram takvimi',       icon: 'calendar-star',     color: '#FF9F0A',      route: '/islamic-calendar' },
+  { id: 'goals',        title: 'Günlük Hedefler',  subtitle: 'Hedeflerini belirle',            icon: 'target',            color: '#30D158',      route: '/daily-goals' },
+  { id: 'upcoming',     title: 'Yaklaşanlar',      subtitle: 'Yaklaşan dini günler',           icon: 'clock-fast',        color: '#0A84FF',      route: '/upcoming-events' },
+  { id: 'achievements', title: 'Başarımlar',       subtitle: 'Rozetler ve ilerleme',           icon: 'medal',             color: '#FFD60A',      route: '/achievements' },
+  { id: 'statistics',   title: 'İstatistikler',    subtitle: 'İbadet istatistiklerin',         icon: 'chart-line',        color: '#FF375F',      route: '/statistics' },
+  { id: 'settings',     title: 'Ayarlar',          subtitle: 'Bildirim ve tercihler',          icon: 'cog',               color: '#8E8E93',      route: '/settings' },
+];
+
+export default function MoreScreen() {
+  const router = useRouter();
+  const featured = MENU_ITEMS.filter(i => i.featured);
+  const regular  = MENU_ITEMS.filter(i => !i.featured);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Menü</Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+
+        {/* Featured — full width */}
+        {featured.map(item => (
+          <TouchableOpacity
+            key={item.id}
+            style={[styles.featuredCard, { borderColor: item.color + '44' }]}
+            onPress={() => router.push(item.route as any)}
+            activeOpacity={0.78}
+          >
+            <View style={[styles.featuredIconBox, { backgroundColor: item.color + '20' }]}>
+              <MaterialCommunityIcons name={item.icon as any} size={32} color={item.color} />
+            </View>
+            <View style={styles.featuredInfo}>
+              <Text style={styles.featuredTitle}>{item.title}</Text>
+              <Text style={styles.featuredSubtitle}>{item.subtitle}</Text>
+            </View>
+            <View style={[styles.featuredArrow, { backgroundColor: item.color + '20' }]}>
+              <Ionicons name="arrow-forward" size={18} color={item.color} />
+            </View>
+          </TouchableOpacity>
+        ))}
+
+        {/* Regular grid */}
+        <View style={styles.grid}>
+          {regular.map(item => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.78}
+            >
+              <View style={[styles.iconBox, { backgroundColor: item.color + '1A' }]}>
+                <MaterialCommunityIcons name={item.icon as any} size={26} color={item.color} />
+              </View>
+              <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={styles.cardSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.footer}>
+          <MaterialCommunityIcons name="mosque" size={22} color={COLORS.gold} style={{ opacity: 0.35 }} />
+          <Text style={styles.footerText}>İslami İbadet · v1.0</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container:  { flex: 1, backgroundColor: COLORS.background },
+  header:     { paddingHorizontal: SPACING.md, paddingTop: SPACING.sm, paddingBottom: SPACING.xs },
+  headerTitle:{ color: COLORS.textPrimary, fontSize: FONT_SIZE.xxl, fontWeight: '800', letterSpacing: 0.2 },
+  scroll:     { padding: SPACING.md, gap: SPACING.sm },
+
+  // Featured card
+  featuredCard: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    backgroundColor: COLORS.cardBg,
+    borderWidth: 1, borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+  },
+  featuredIconBox:  { width: 56, height: 56, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
+  featuredInfo:     { flex: 1 },
+  featuredTitle:    { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  featuredSubtitle: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
+  featuredArrow:    { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+
+  // Grid
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  card: {
+    width: '47.5%',
+    backgroundColor: COLORS.cardBg,
+    borderColor: COLORS.cardBorder, borderWidth: 1,
+    borderRadius: RADIUS.xl, padding: SPACING.md, gap: 6,
+    minHeight: 110,
+  },
+  iconBox:     { width: 48, height: 48, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
+  cardTitle:   { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700', marginTop: 2 },
+  cardSubtitle:{ color: COLORS.textMuted, fontSize: FONT_SIZE.xs, lineHeight: 16 },
+
+  footer:     { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: SPACING.xs, paddingVertical: SPACING.lg },
+  footerText: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, letterSpacing: 0.5 },
+});
