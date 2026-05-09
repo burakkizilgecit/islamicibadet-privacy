@@ -9,15 +9,12 @@ import MapView, { Marker, Circle } from 'react-native-maps';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
-import Constants from 'expo-constants';
+import { useTranslation } from '../../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
 
 const { height } = Dimensions.get('window');
 const MOSQUE_IMG = require('../../assets/images/mosque-day.png');
-const MAPS_KEY: string =
-  (Constants.expoConfig as any)?.extra?.googleMapsApiKey ??
-  (Constants.expoConfig as any)?.android?.config?.googleMaps?.apiKey ??
-  '';
+const MAPS_KEY = 'AIzaSyCsJqytioV-H-SJGWSGZwQOOdZs-HQblWA';
 
 const DARK_MAP_STYLE = [
   { elementType: 'geometry', stylers: [{ color: '#0B0F1A' }] },
@@ -148,6 +145,7 @@ async function fetchNearbyMosques(lat: number, lng: number, radiusM = 5000): Pro
 function FilterModal({
   visible, current, onApply, onClose,
 }: { visible: boolean; current: number; onApply: (v: number) => void; onClose: () => void }) {
+  const { t } = useTranslation();
   const [preset, setPreset] = useState<number | null>(current);
   const [custom, setCustom] = useState('');
 
@@ -223,6 +221,7 @@ function FilterModal({
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 export default function MosquesScreen() {
+  const { t } = useTranslation();
   const mapRef = useRef<MapView>(null);
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [allMosques, setAllMosques] = useState<Mosque[]>([]);
@@ -262,7 +261,7 @@ export default function MosquesScreen() {
       mapRef.current?.animateToRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.025, longitudeDelta: 0.025 }, 800);
       const data = await fetchNearbyMosques(lat, lng, 5000);
       setAllMosques(data);
-      if (data.length === 0) setErrorMsg('Yakında cami bulunamadı.');
+      if (data.length === 0) setErrorMsg(t('mosquesNotFound'));
     } catch (e: any) {
       setErrorMsg(e.message?.includes('API') ? e.message : 'Camiler yüklenemedi. İnternet bağlantınızı kontrol edin.');
     } finally {
@@ -370,7 +369,7 @@ export default function MosquesScreen() {
           <TouchableOpacity style={[styles.filterBtn, maxDist < 5000 && styles.filterBtnActive]} onPress={() => setShowFilter(true)}>
             <MaterialCommunityIcons name="tune-vertical" size={14} color={maxDist < 5000 ? COLORS.background : COLORS.gold} />
             <Text style={[styles.filterText, maxDist < 5000 && { color: COLORS.background }]}>
-              {maxDist < 5000 ? `≤ ${filterLabel}` : 'Filtrele'}
+              {maxDist < 5000 ? `≤ ${filterLabel}` : t('mosquesFilter')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -431,7 +430,7 @@ export default function MosquesScreen() {
                     <View style={styles.statusRow}>
                       <View style={[styles.statusDot, { backgroundColor: item.openNow === false ? COLORS.red : COLORS.green }]} />
                       <Text style={[styles.openText, { color: item.openNow === false ? COLORS.red : COLORS.green }]}>
-                        {item.openNow === false ? 'Kapalı' : 'Açık'}
+                        {item.openNow === false ? t('mosquesClosed') : t('mosquesOpen')}
                       </Text>
                     </View>
 

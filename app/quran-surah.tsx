@@ -7,10 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Audio } from 'expo-av';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { fetchSurah, type Verse, type SurahMeta } from '../data/quranData';
 
 export default function QuranSurahScreen() {
+  const { t } = useTranslation();
   const { number } = useLocalSearchParams<{ number: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function QuranSurahScreen() {
       setMeta(data.meta);
       setVerses(data.verses);
     } catch (e: any) {
-      setError('Sure yüklenemedi. İnternet bağlantınızı kontrol edin.');
+      setError(t('quranError'));
     } finally {
       setLoading(false);
     }
@@ -231,7 +233,7 @@ export default function QuranSurahScreen() {
                   color={isPlayingAll ? COLORS.background : COLORS.gold}
                 />
                 <Text style={[styles.playAllText, isPlayingAll && styles.playAllTextActive]}>
-                  {isPlayingAll ? 'Durdur' : 'Tümünü Dinle'}
+                  {isPlayingAll ? t('quranStop') : t('quranPlayAll')}
                 </Text>
               </TouchableOpacity>
             </View>

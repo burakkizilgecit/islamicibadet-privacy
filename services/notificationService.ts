@@ -3,15 +3,25 @@ import { Platform } from 'react-native';
 import { calculatePrayerTimes } from './prayerService';
 import type { AppSettings } from '../store/useSettingsStore';
 
-// ── Android channel ────────────────────────────────────────────────────────
+// ── Android channels ───────────────────────────────────────────────────────
 export async function setupNotificationChannel() {
   if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync('prayer', {
-    name: 'Namaz Vakitleri',
+
+  const prayerBase = {
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 400, 200, 400],
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
     bypassDnd: false,
+  };
+
+  await Notifications.setNotificationChannelAsync('prayer_ezan', {
+    ...prayerBase, name: 'Namaz Vakitleri (Ezan)', sound: 'ezan.wav',
+  });
+  await Notifications.setNotificationChannelAsync('prayer_ilahi', {
+    ...prayerBase, name: 'Namaz Vakitleri (İlahi)', sound: 'ilahi.wav',
+  });
+  await Notifications.setNotificationChannelAsync('prayer_salavat', {
+    ...prayerBase, name: 'Namaz Vakitleri (Salavat)', sound: 'salavat.wav',
   });
   await Notifications.setNotificationChannelAsync('reminder', {
     name: 'Hatırlatmalar',
@@ -91,14 +101,15 @@ export async function scheduleAllNotifications(
 
       // Main prayer notification
       const msg = MESSAGES[prayer];
+      const prayerChannelId = `prayer_${settings.notificationSound ?? 'ezan'}`;
       await Notifications.scheduleNotificationAsync({
         identifier: `prayer_${prayer}_${d}`,
         content: {
           title: msg.title,
           body: msg.body,
-          sound: true,
+          sound: Platform.OS === 'ios' ? `${settings.notificationSound ?? 'ezan'}.wav` : true,
           data: { type: 'prayer', prayer },
-          ...(Platform.OS === 'android' && { channelId: 'prayer' }),
+          ...(Platform.OS === 'android' && { channelId: prayerChannelId }),
         },
         trigger: { date: pTime, type: Notifications.SchedulableTriggerInputTypes.DATE },
       });

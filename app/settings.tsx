@@ -1,12 +1,41 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Switch, StatusBar, Modal, Linking,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { Alert } from 'react-native';
+import { useTutorialStore } from '../store/useTutorialStore';
+import type { NotificationSound } from '../store/useSettingsStore';
+import { useTranslation, applyRTL, type Language } from '../i18n';
+
+const SOUNDS: { key: NotificationSound; label: string; desc: string; icon: string; file: any }[] = [
+  {
+    key: 'ezan',
+    label: 'Ezan',
+    desc: 'Geleneksel Arapça ezan sesi',
+    icon: 'mosque',
+    file: require('../assets/sounds/ezan.wav'),
+  },
+  {
+    key: 'ilahi',
+    label: 'İlahi',
+    desc: 'Türkçe dinî ilahi melodisi',
+    icon: 'music-note',
+    file: require('../assets/sounds/ilahi.wav'),
+  },
+  {
+    key: 'salavat',
+    label: 'Salavat',
+    desc: 'Hz. Peygamber\'e salavat-ı şerife',
+    icon: 'star-crescent',
+    file: require('../assets/sounds/salavat.wav'),
+  },
+];
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { useSettingsStore, type AppSettings } from '../store/useSettingsStore';
 
@@ -129,7 +158,40 @@ function TimePicker({ visible, startTime, endTime, onSave, onClose }: TimePicker
 export default function SettingsScreen() {
   const router = useRouter();
   const { settings, toggleNotification, updateSettings } = useSettingsStore();
+  const { reset: resetTutorial } = useTutorialStore();
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  const previewSound = async (sound: NotificationSound) => {
+    try {
+      if (soundRef.current) { await soundRef.current.unloadAsync(); soundRef.current = null; }
+      const file = SOUNDS.find(s => s.key === sound)?.file;
+      if (!file) return;
+      const { sound: s } = await Audio.Sound.createAsync(file, { shouldPlay: true });
+      soundRef.current = s;
+      s.setOnPlaybackStatusUpdate(st => { if (st.isLoaded && st.didJustFinish) s.unloadAsync(); });
+    } catch {}
+  };
+
+  const { t } = useTranslation();
+
+  const handleLanguageChange = (lang: Language) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    updateSettings({ language: lang });
+    const needsRestart = applyRTL(lang);
+    if (needsRestart) {
+      Alert.alert(
+        lang === 'ar' ? 'إعادة التشغيل مطلوبة' : 'Yeniden Başlatma',
+        lang === 'ar' ? 'أغلق التطبيق وأعد فتحه لتفعيل اللغة العربية.' : 'Dil değişikliğinin tam olarak uygulanması için uygulamayı kapatıp yeniden açın.',
+        [{ text: lang === 'ar' ? 'حسناً' : 'Tamam' }]
+      );
+    }
+  };
+
+  const handleReplayTutorial = async () => {
+    await resetTutorial();
+    router.replace('/tutorial' as any);
+  };
 
   const handleVibrationToggle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -178,6 +240,64 @@ export default function SettingsScreen() {
               />
             </View>
           ))}
+        </View>
+
+        {/* Language */}
+        <Text style={styles.sectionTitle}>{t('settingsLanguage')}</Text>
+        <Text style={styles.sectionDesc}>{t('settingsLanguageDesc')}</Text>
+        <View style={styles.langCard}>
+          {(['tr', 'en', 'ar'] as Language[]).map((lang) => {
+            const active = (settings.language ?? 'tr') === lang;
+            const label = lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية';
+            const flag  = lang === 'tr' ? '🇹🇷' : lang === 'en' ? '🇬🇧' : '🇸🇦';
+            return (
+              <TouchableOpacity
+                key={lang}
+                style={[styles.langBtn, active && styles.langBtnActive]}
+                onPress={() => handleLanguageChange(lang)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.langFlag}>{flag}</Text>
+                <Text style={[styles.langLabel, active && styles.langLabelActive]}>{label}</Text>
+                {active && <View style={styles.langDot} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Notification Sound */}
+        <Text style={styles.sectionTitle}>{t('settingsSound')}</Text>
+        <Text style={styles.sectionDesc}>Namaz vakti bildirimlerinde çalacak sesi seçin.</Text>
+        <View style={styles.card}>
+          {SOUNDS.map((s, i) => {
+            const active = settings.notificationSound === s.key;
+            return (
+              <TouchableOpacity
+                key={s.key}
+                style={[styles.soundRow, i < SOUNDS.length - 1 && styles.rowBorder]}
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); updateSettings({ notificationSound: s.key }); }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.soundIconBox, active && styles.soundIconBoxActive]}>
+                  <MaterialCommunityIcons name={s.icon as any} size={20} color={active ? COLORS.background : COLORS.gold} />
+                </View>
+                <View style={styles.settingInfo}>
+                  <Text style={[styles.settingLabel, active && { color: COLORS.gold }]}>{s.label}</Text>
+                  <Text style={styles.settingDesc2}>{s.desc}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.previewBtn}
+                  onPress={() => previewSound(s.key)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="play-circle-outline" size={22} color={COLORS.textMuted} />
+                </TouchableOpacity>
+                <View style={[styles.radioOuter, active && styles.radioOuterActive]}>
+                  {active && <View style={styles.radioInner} />}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Other Settings */}
@@ -246,6 +366,21 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <TouchableOpacity
             style={[styles.settingRow, styles.rowBorder]}
+            onPress={handleReplayTutorial}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingIcon}>
+              <Ionicons name="play-circle-outline" size={20} color={COLORS.gold} />
+            </View>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Tanıtımı Tekrar Gör</Text>
+              <Text style={styles.settingDesc2}>Uygulama kullanım kılavuzunu baştan izle</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.settingRow, styles.rowBorder]}
             onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
             activeOpacity={0.7}
           >
@@ -304,6 +439,22 @@ const styles = StyleSheet.create({
   appName: { color: COLORS.textSecondary, fontSize: FONT_SIZE.md, fontWeight: '600' },
   appVersion: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
   appCopyright: { color: COLORS.textMuted, fontSize: 10 },
+
+  soundRow:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2, gap: SPACING.sm },
+  soundIconBox:      { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(200,168,83,0.12)', alignItems: 'center', justifyContent: 'center' },
+  soundIconBoxActive:{ backgroundColor: COLORS.gold },
+  previewBtn:        { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  radioOuter:        { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: COLORS.cardBorder, alignItems: 'center', justifyContent: 'center' },
+  radioOuterActive:  { borderColor: COLORS.gold },
+  radioInner:        { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.gold },
+
+  langCard:          { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
+  langBtn:           { flex: 1, alignItems: 'center', paddingVertical: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder, gap: 4 },
+  langBtnActive:     { borderColor: COLORS.gold, backgroundColor: 'rgba(200,168,83,0.1)' },
+  langFlag:          { fontSize: 22 },
+  langLabel:         { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '600' },
+  langLabelActive:   { color: COLORS.gold, fontWeight: '800' },
+  langDot:           { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.gold },
 
   // Time Picker Modal
   pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center' },

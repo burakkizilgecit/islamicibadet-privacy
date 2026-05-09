@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   StatusBar, ActivityIndicator, ImageBackground, Dimensions,
-  Modal, FlatList, Share,
+  Modal, FlatList, Share, Switch,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
@@ -14,6 +14,8 @@ import * as Location from 'expo-location';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
 import { usePrayerStore } from '../../store/usePrayerStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import { useTranslation, applyRTL, type Language } from '../../i18n';
 import { formatPrayerTime, getNextPrayer, getCountdown } from '../../services/prayerService';
 import { formatGregorianDate, formatHijriDate, DAYS_TR } from '../../services/hijriService';
 import { getDailyHadith } from '../../data/hadiths';
@@ -48,19 +50,27 @@ const PRAYER_ICONS: Record<string, string> = {
   maghrib: 'weather-sunset-down', isha: 'moon-waning-crescent',
 };
 
-const PRAYER_LABELS: Record<string, string> = {
-  fajr: 'Sabah', sunrise: 'Güneş', dhuhr: 'Öğle',
-  asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı',
+const PRAYER_LABEL_KEYS: Record<string, string> = {
+  fajr: 'prayerFajr', sunrise: 'prayerSunrise', dhuhr: 'prayerDhuhr',
+  asr: 'prayerAsr', maghrib: 'prayerMaghrib', isha: 'prayerIsha',
 };
 
 export default function HomeScreen() {
   const { prayerTimes, location, setLocation, loadCompletion, togglePrayer, getTodayCompletion } = usePrayerStore();
   const { notifications, loadNotifications, markRead, markAllRead, getUnreadCount, generateDailyIfNeeded } = useNotificationStore();
   const [countdown, setCountdown] = useState('--:--:--');
-  const [nextPrayer, setNextPrayer] = useState<{ name: string; time: Date } | null>(null);
+  const [nextPrayer, setNextPrayer] = useState<{ key: string; name: string; time: Date } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [shareData, setShareData] = useState<any>(null);
+  const { settings, toggleNotification, updateSettings } = useSettingsStore();
+  const { t, language } = useTranslation();
+
+  const handleLangChange = (lang: Language) => {
+    updateSettings({ language: lang });
+    applyRTL(lang);
+  };
   const shareCardRef = useRef<ViewShot>(null);
   const unreadCount = getUnreadCount();
 
@@ -82,6 +92,9 @@ export default function HomeScreen() {
   };
   const hadith = getDailyHadith();
   const dua = getDailyDua();
+  const hadithText   = language === 'ar' ? hadith.ar  : language === 'en' ? hadith.en  : hadith.text;
+  const duaTitle     = language === 'ar' ? dua.title  : language === 'en' ? dua.title_en : dua.title;
+  const duaMeaning   = language === 'ar' ? dua.arabic : language === 'en' ? dua.english  : dua.turkish;
   const now = new Date();
   const hour = now.getHours();
   const isNight = hour >= 18 || hour < 6;
@@ -182,6 +195,57 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* Notification Settings Modal */}
+      <Modal visible={showNotifSettings} transparent animationType="slide" onRequestClose={() => setShowNotifSettings(false)}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setShowNotifSettings(false)}>
+          <View style={styles.notifSettingsSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.notifSettingsHeader}>
+              <Ionicons name="notifications-outline" size={20} color={COLORS.gold} />
+              <Text style={styles.notifSettingsTitle}>{t('settingsNotifications')}</Text>
+            </View>
+
+            {/* Language quick-switcher */}
+            <View style={styles.notifLangRow}>
+              <Ionicons name="language-outline" size={16} color={COLORS.textMuted} />
+              <Text style={styles.notifLangTitle}>{t('settingsLanguage')}:</Text>
+              {(['tr', 'en', 'ar'] as Language[]).map((lang) => {
+                const active = (settings.language ?? 'tr') === lang;
+                const label = lang === 'tr' ? '🇹🇷 TR' : lang === 'en' ? '🇬🇧 EN' : '🇸🇦 AR';
+                return (
+                  <TouchableOpacity
+                    key={lang}
+                    style={[styles.notifLangBtn, active && styles.notifLangBtnActive]}
+                    onPress={() => handleLangChange(lang)}
+                  >
+                    <Text style={[styles.notifLangBtnText, active && styles.notifLangBtnTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {([
+              { key: 'prayerTimes',   labelKey: 'notifPrayerTimes',   icon: 'clock-time-five-outline' },
+              { key: 'earlyReminder', labelKey: 'notifEarlyReminder', icon: 'bell-ring-outline' },
+              { key: 'dailyHadith',   labelKey: 'notifDailyHadith',   icon: 'format-quote-close' },
+              { key: 'dailyDua',      labelKey: 'notifDailyDua',      icon: 'hands-pray' },
+              { key: 'dhikrReminder', labelKey: 'notifDhikr',         icon: 'circle-outline' },
+            ] as const).map((item, i, arr) => (
+              <View key={item.key} style={[styles.notifSettingRow, i < arr.length - 1 && styles.notifSettingBorder]}>
+                <MaterialCommunityIcons name={item.icon as any} size={18} color={COLORS.gold} style={styles.notifSettingIcon} />
+                <Text style={styles.notifSettingLabel}>{t(item.labelKey as any)}</Text>
+                <Switch
+                  value={settings.notifications[item.key]}
+                  onValueChange={() => toggleNotification(item.key)}
+                  trackColor={{ false: COLORS.cardBorder, true: COLORS.gold + '66' }}
+                  thumbColor={settings.notifications[item.key] ? COLORS.gold : COLORS.textMuted}
+                />
+              </View>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
         {/* Hero with mosque background */}
         <ImageBackground source={mosqueImage} style={styles.hero} resizeMode="cover">
@@ -195,14 +259,19 @@ export default function HomeScreen() {
                   <Text style={styles.cityText}>{location?.city ?? '...'}</Text>
                   <Ionicons name="chevron-down" size={14} color={COLORS.gold} />
                 </View>
-                <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifs(true)}>
-                  <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
-                  {unreadCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                <View style={styles.headerBtnGroup}>
+                  <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifSettings(true)}>
+                    <Ionicons name="settings-outline" size={22} color={COLORS.textPrimary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifs(true)}>
+                    <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
+                    {unreadCount > 0 && (
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Date */}
@@ -226,9 +295,9 @@ export default function HomeScreen() {
                         />
                       </View>
                       <View>
-                        <Text style={styles.nextPrayerLabel}>SIRADAKI NAMAZ</Text>
+                        <Text style={styles.nextPrayerLabel}>{t('prayerNext').toUpperCase()}</Text>
                         <Text style={styles.nextPrayerName}>
-                          {nextPrayer ? `${nextPrayer.name} Namazı'na` : 'Tüm Namazlar Kılındı'}
+                          {nextPrayer ? t(PRAYER_LABEL_KEYS[nextPrayer.key] as any) : t('homePrayerDone')}
                         </Text>
                       </View>
                     </View>
@@ -250,7 +319,7 @@ export default function HomeScreen() {
             {prayerKeys.map((key, i) => {
               const time = prayerTimes?.[key];
               const isPast = time ? time < now : false;
-              const isNext = nextPrayer?.name === PRAYER_LABELS[key];
+              const isNext = nextPrayer?.key === key;
               const isToggleable = toggleablePrayers.includes(key as any);
               const isDone = isToggleable && completion[key as keyof typeof completion];
 
@@ -263,7 +332,7 @@ export default function HomeScreen() {
                       color={isNext ? COLORS.gold : isPast ? COLORS.textMuted : COLORS.textSecondary}
                     />
                     <Text style={[styles.prayerName, isNext && { color: COLORS.gold }, isPast && !isNext && { color: COLORS.textMuted }]}>
-                      {PRAYER_LABELS[key]}
+                      {t(PRAYER_LABEL_KEYS[key] as any)}
                     </Text>
                   </View>
                   <View style={styles.prayerRight}>
@@ -293,15 +362,15 @@ export default function HomeScreen() {
           <View style={styles.infoCard}>
             <View style={styles.infoCardHeader}>
               <MaterialIcons name="format-quote" size={20} color={COLORS.gold} />
-              <Text style={styles.infoCardTitle}>Günün Hadisi</Text>
+              <Text style={styles.infoCardTitle}>{language === 'ar' ? 'حديث اليوم' : language === 'en' ? 'Daily Hadith' : 'Günün Hadisi'}</Text>
               <TouchableOpacity
                 style={styles.shareBtn}
-                onPress={() => setShareData({ type: 'hadith', text: hadith.text, source: hadith.source })}
+                onPress={() => setShareData({ type: 'hadith', text: hadithText, source: hadith.source })}
               >
                 <Ionicons name="share-social-outline" size={16} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.infoCardText}>"{hadith.text}"</Text>
+            <Text style={[styles.infoCardText, language === 'ar' && { textAlign: 'right' }]}>"{hadithText}"</Text>
             <Text style={styles.infoCardSource}>({hadith.source})</Text>
           </View>
         </View>
@@ -311,17 +380,17 @@ export default function HomeScreen() {
           <View style={styles.infoCard}>
             <View style={styles.infoCardHeader}>
               <MaterialCommunityIcons name="hands-pray" size={20} color={COLORS.gold} />
-              <Text style={styles.infoCardTitle}>Günün Duası</Text>
+              <Text style={styles.infoCardTitle}>{language === 'ar' ? 'دعاء اليوم' : language === 'en' ? 'Daily Supplication' : 'Günün Duası'}</Text>
               <TouchableOpacity
                 style={styles.shareBtn}
-                onPress={() => setShareData({ type: 'dua', title: dua.title, arabic: dua.arabic, turkish: dua.turkish, source: dua.source })}
+                onPress={() => setShareData({ type: 'dua', title: duaTitle, arabic: dua.arabic, turkish: duaMeaning, source: dua.source })}
               >
                 <Ionicons name="share-social-outline" size={16} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.infoCardTitle2}>{dua.title}</Text>
+            <Text style={styles.infoCardTitle2}>{duaTitle}</Text>
             <Text style={styles.arabicText}>{dua.arabic}</Text>
-            <Text style={styles.infoCardText}>{dua.turkish}</Text>
+            {language !== 'ar' && <Text style={styles.infoCardText}>{duaMeaning}</Text>}
             <Text style={styles.infoCardSource}>({dua.source})</Text>
           </View>
         </View>
@@ -441,8 +510,24 @@ const styles = StyleSheet.create({
   shareBtn:        { padding: 6, marginLeft: 'auto' as any },
 
   // ── Notification panel ────────────────────────────────────────────────────
+  headerBtnGroup: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   badge:          { position: 'absolute', top: 6, right: 6, minWidth: 15, height: 15, borderRadius: 8, backgroundColor: COLORS.red, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText:      { color: '#fff', fontSize: 9, fontWeight: '800' },
+  // Notification settings modal
+  notifSettingsSheet:  { marginHorizontal: SPACING.md, marginBottom: SPACING.xl, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorderActive, padding: SPACING.lg, paddingBottom: SPACING.xl },
+  sheetHandle:         { width: 36, height: 4, borderRadius: 2, backgroundColor: COLORS.cardBorder, alignSelf: 'center', marginBottom: SPACING.md },
+  notifSettingsHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md, paddingBottom: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
+  notifSettingsTitle:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  notifSettingRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm + 2 },
+  notifSettingBorder:  { borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
+  notifSettingIcon:    { marginRight: SPACING.sm },
+  notifSettingLabel:   { flex: 1, color: COLORS.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
+  notifLangRow:        { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder, marginBottom: SPACING.xs },
+  notifLangTitle:      { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, flex: 1 },
+  notifLangBtn:        { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.cardBorder },
+  notifLangBtnActive:  { borderColor: COLORS.gold, backgroundColor: 'rgba(200,168,83,0.15)' },
+  notifLangBtnText:    { color: COLORS.textMuted, fontSize: 11, fontWeight: '600' },
+  notifLangBtnTextActive: { color: COLORS.gold },
   modalBackdrop:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)' },
   notifPanel:     { margin: SPACING.md, marginTop: 90, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorderActive, overflow: 'hidden' },
   notifPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },

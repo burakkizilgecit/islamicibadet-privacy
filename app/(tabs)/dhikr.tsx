@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Svg, { Circle } from 'react-native-svg';
+import { useTranslation } from '../../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
 import { useDhikrStore } from '../../store/useDhikrStore';
 
@@ -21,6 +22,7 @@ const R = 80;
 const CIRCUMFERENCE = 2 * Math.PI * R;
 
 export default function DhikrScreen() {
+  const { t } = useTranslation();
   const { items, activeCategory, increment, reset, setCategory, getTotalToday, loadData, getWeeklyHistory } = useDhikrStore();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim  = useRef(new Animated.Value(0)).current;

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { usePrayerStore } from '../store/usePrayerStore';
 import { useDhikrStore } from '../store/useDhikrStore';
@@ -11,6 +12,7 @@ import { DAYS_SHORT_TR, GREGORIAN_MONTHS_TR } from '../services/hijriService';
 const TABS = ['Haftalık', 'Aylık', 'Yıllık'];
 
 export default function StatisticsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const { completion } = usePrayerStore();

@@ -29,27 +29,25 @@ export function getNextPrayer(
   times: PrayerTimesData,
   lat = 41.0082,
   lng = 28.9784,
-): { name: string; time: Date } {
+): { key: string; name: string; time: Date } {
   const nowMs = Date.now();
 
   const prayers = [
-    { name: 'Sabah',   time: new Date(times.fajr) },
-    { name: 'Güneş',   time: new Date(times.sunrise) },
-    { name: 'Öğle',    time: new Date(times.dhuhr) },
-    { name: 'İkindi',  time: new Date(times.asr) },
-    { name: 'Akşam',   time: new Date(times.maghrib) },
-    { name: 'Yatsı',   time: new Date(times.isha) },
+    { key: 'fajr',    name: 'Sabah',  time: new Date(times.fajr) },
+    { key: 'sunrise', name: 'Güneş',  time: new Date(times.sunrise) },
+    { key: 'dhuhr',   name: 'Öğle',   time: new Date(times.dhuhr) },
+    { key: 'asr',     name: 'İkindi', time: new Date(times.asr) },
+    { key: 'maghrib', name: 'Akşam',  time: new Date(times.maghrib) },
+    { key: 'isha',    name: 'Yatsı',  time: new Date(times.isha) },
   ];
 
-  // Find the next prayer today
   const next = prayers.find(p => p.time.getTime() > nowMs);
   if (next) return next;
 
-  // All today's prayers have passed → return tomorrow's Fajr
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowTimes = calculatePrayerTimes(lat, lng, tomorrow);
-  return { name: 'Sabah', time: new Date(tomorrowTimes.fajr) };
+  return { key: 'fajr', name: 'Sabah', time: new Date(tomorrowTimes.fajr) };
 }
 
 export function getCountdown(targetTime: Date | string | number): string {

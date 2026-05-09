@@ -7,11 +7,13 @@ import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
 import { usePrayerStore } from '../../store/usePrayerStore';
 import { calculateQiblaDirection } from '../../services/prayerService';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
+import { useTranslation } from '../../i18n';
 
 const MECCA = { lat: 21.3891, lng: 39.8579 };
 
 export default function QiblaScreen() {
   const { location } = usePrayerStore();
+  const { t } = useTranslation();
   const [magnetometer, setMagnetometer] = useState(0);
   const [qiblaAngle, setQiblaAngle] = useState(0);
   const [hasPermission, setHasPermission] = useState(false);
@@ -53,8 +55,8 @@ export default function QiblaScreen() {
   const isAligned = diff < 5;
 
   const cardinals = [
-    { label: 'K', angle: 0 }, { label: 'D', angle: 90 },
-    { label: 'G', angle: 180 }, { label: 'B', angle: 270 },
+    { label: t('qiblaDirN'), angle: 0 }, { label: t('qiblaDirE'), angle: 90 },
+    { label: t('qiblaDirS'), angle: 180 }, { label: t('qiblaDirW'), angle: 270 },
   ];
 
   return (
@@ -62,7 +64,7 @@ export default function QiblaScreen() {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Kıble Yönü</Text>
+        <Text style={styles.headerTitle}>{t('qiblaTitle')}</Text>
         <Text style={styles.headerSub}>{location?.city ?? 'İstanbul'} → Mekke</Text>
       </View>
 
@@ -118,19 +120,19 @@ export default function QiblaScreen() {
       <View style={styles.infoRow}>
         <View style={styles.infoBox}>
           <Ionicons name="compass-outline" size={20} color={COLORS.gold} />
-          <Text style={styles.infoLabel}>Pusula</Text>
+          <Text style={styles.infoLabel}>{t('qiblaCompass')}</Text>
           <Text style={styles.infoValue}>{compassDeg}</Text>
         </View>
         <View style={[styles.infoBox, styles.infoBoxCenter, isAligned && styles.alignedBox]}>
           <MaterialCommunityIcons name="mosque" size={20} color={isAligned ? COLORS.green : COLORS.gold} />
-          <Text style={styles.infoLabel}>Kıble</Text>
+          <Text style={styles.infoLabel}>{t('tabQibla')}</Text>
           <Text style={[styles.infoValue, isAligned && { color: COLORS.green }]}>{qiblaDeg}</Text>
         </View>
         <View style={styles.infoBox}>
           <MaterialCommunityIcons name="map-marker-distance" size={20} color={COLORS.gold} />
-          <Text style={styles.infoLabel}>Durum</Text>
+          <Text style={styles.infoLabel}>{t('qiblaStatus')}</Text>
           <Text style={[styles.infoValue, { fontSize: FONT_SIZE.xs, color: isAligned ? COLORS.green : COLORS.textSecondary }]}>
-            {isAligned ? 'Hizalı ✓' : `${diff.toFixed(0)}° fark`}
+            {isAligned ? t('qiblaAligned') : `${diff.toFixed(0)}° ${t('qiblaDiff')}`}
           </Text>
         </View>
       </View>
@@ -138,14 +140,14 @@ export default function QiblaScreen() {
       {isAligned && (
         <View style={styles.alignedBanner}>
           <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.green} />
-          <Text style={styles.alignedText}>Kıbleye yöneldiniz!</Text>
+          <Text style={styles.alignedText}>{t('qiblaDirected')}</Text>
         </View>
       )}
 
       {!hasPermission && (
         <View style={styles.permissionBanner}>
           <Ionicons name="warning-outline" size={18} color={COLORS.gold} />
-          <Text style={styles.permissionText}>Pusula için sensör izni gereklidir. Kıble yönü yaklaşık gösterilmektedir.</Text>
+          <Text style={styles.permissionText}>{t('qiblaSensorNote')}</Text>
         </View>
       )}
     </SafeAreaView>

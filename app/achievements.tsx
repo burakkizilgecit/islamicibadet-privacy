@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Modal, S
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { usePrayerStore, type PrayerCompletion } from '../store/usePrayerStore';
 import { useDhikrStore, type DhikrHistory } from '../store/useDhikrStore';
@@ -87,8 +88,8 @@ function fridayStreak(completion: PrayerCompletion): number {
 
 interface AchievementDef {
   id: string;
-  title: string;
-  desc: string;
+  titleKey: string;
+  descKey: string;
   icon: string;
   color: string;
   category: string;
@@ -98,88 +99,30 @@ interface AchievementDef {
 }
 
 const DEFS: AchievementDef[] = [
-  {
-    id: 'first_step', title: 'İlk Adım', icon: 'star', color: '#FFD700', category: 'Diğer', xp: 50, goal: 1,
-    desc: 'Uygulamayı ilk kez kullandın',
-    getValue: () => 1,
-  },
-  {
-    id: 'fajr_7', title: 'Sabah Ustası', icon: 'weather-night', color: '#7B61FF', category: 'Namaz', xp: 100, goal: 7,
-    desc: '7 gün üst üste sabah namazı kıl',
-    getValue: (c) => prayerStreak(c, 'fajr'),
-  },
-  {
-    id: 'asr_7', title: 'İkindi Ustası', icon: 'weather-partly-cloudy', color: '#2196F3', category: 'Namaz', xp: 100, goal: 7,
-    desc: '7 gün üst üste ikindi namazı kıl',
-    getValue: (c) => prayerStreak(c, 'asr'),
-  },
-  {
-    id: 'isha_7', title: 'Gece Kuşu', icon: 'moon-waning-crescent', color: '#9C27B0', category: 'Namaz', xp: 100, goal: 7,
-    desc: '7 gün üst üste yatsı namazı kıl',
-    getValue: (c) => prayerStreak(c, 'isha'),
-  },
-  {
-    id: 'prayers_50', title: 'Namaz Ehli', icon: 'mosque', color: COLORS.gold, category: 'Namaz', xp: 150, goal: 50,
-    desc: 'Toplam 50 vakit namaz kıl',
-    getValue: (c) => totalPrayersEver(c),
-  },
-  {
-    id: 'prayers_200', title: 'Namaz Sultanı', icon: 'mosque', color: '#FF8C42', category: 'Namaz', xp: 300, goal: 200,
-    desc: 'Toplam 200 vakit namaz kıl',
-    getValue: (c) => totalPrayersEver(c),
-  },
-  {
-    id: 'streak_30', title: 'Devam Eden', icon: 'fire', color: '#FF5722', category: 'Diğer', xp: 200, goal: 30,
-    desc: '30 gün üst üste en az 1 namaz kıl',
-    getValue: (c) => anyPrayerStreak(c),
-  },
-  {
-    id: 'friday_4', title: 'Cuma Ustası', icon: 'calendar-check', color: '#4CAF50', category: 'Namaz', xp: 150, goal: 4,
-    desc: '4 hafta üst üste Cuma namazı kıl',
-    getValue: (c) => fridayStreak(c),
-  },
-  {
-    id: 'active_7', title: 'Haftalık Kahraman', icon: 'shield-star', color: '#00BCD4', category: 'Diğer', xp: 100, goal: 7,
-    desc: '7 farklı gün namaz kıl',
-    getValue: (c) => Math.min(activeDays(c), 7),
-  },
-  {
-    id: 'dhikr_100', title: 'Zikir Sever', icon: 'circle-outline', color: COLORS.gold, category: 'Zikir', xp: 75, goal: 100,
-    desc: 'Toplam 100 tespih çek',
-    getValue: (_, h) => totalDhikrById(h, 'subhanallah'),
-  },
-  {
-    id: 'dhikr_500', title: 'Zikir Sever II', icon: 'circle-double', color: '#C8A853', category: 'Zikir', xp: 150, goal: 500,
-    desc: 'Toplam 500 tespih çek',
-    getValue: (_, h) => totalDhikrById(h, 'subhanallah'),
-  },
-  {
-    id: 'salavat_100', title: 'Salavat Yolcusu', icon: 'rotate-right', color: '#FF8C42', category: 'Zikir', xp: 100, goal: 100,
-    desc: 'Toplam 100 salavat getir',
-    getValue: (_, h) => totalDhikrById(h, 'salavat'),
-  },
-  {
-    id: 'istigfar_100', title: 'İstiğfar Ehli', icon: 'hands-pray', color: '#E91E63', category: 'Zikir', xp: 100, goal: 100,
-    desc: 'Toplam 100 istiğfar çek',
-    getValue: (_, h) => totalDhikrById(h, 'istigfar'),
-  },
-  {
-    id: 'dhikr_total_1000', title: 'Zikir Sultanı', icon: 'star-circle', color: '#FFD700', category: 'Zikir', xp: 300, goal: 1000,
-    desc: 'Toplam 1000 zikir yap',
-    getValue: (_, h) => totalDhikrAll(h),
-  },
+  { id: 'first_step',       titleKey: 'achFirstStep',   descKey: 'achFirstStepDesc',   icon: 'star',                color: '#FFD700', category: 'achTabOther',  xp: 50,  goal: 1,    getValue: () => 1 },
+  { id: 'fajr_7',           titleKey: 'achFajrMaster',  descKey: 'achFajrMasterDesc',  icon: 'weather-night',       color: '#7B61FF', category: 'achTabPrayer', xp: 100, goal: 7,    getValue: (c) => prayerStreak(c, 'fajr') },
+  { id: 'asr_7',            titleKey: 'achAsrMaster',   descKey: 'achAsrMasterDesc',   icon: 'weather-partly-cloudy', color: '#2196F3', category: 'achTabPrayer', xp: 100, goal: 7,   getValue: (c) => prayerStreak(c, 'asr') },
+  { id: 'isha_7',           titleKey: 'achIshaMaster',  descKey: 'achIshaMasterDesc',  icon: 'moon-waning-crescent', color: '#9C27B0', category: 'achTabPrayer', xp: 100, goal: 7,   getValue: (c) => prayerStreak(c, 'isha') },
+  { id: 'prayers_50',       titleKey: 'achPrayer50',    descKey: 'achPrayer50Desc',    icon: 'mosque',              color: COLORS.gold, category: 'achTabPrayer', xp: 150, goal: 50, getValue: (c) => totalPrayersEver(c) },
+  { id: 'prayers_200',      titleKey: 'achPrayer200',   descKey: 'achPrayer200Desc',   icon: 'mosque',              color: '#FF8C42', category: 'achTabPrayer', xp: 300, goal: 200,  getValue: (c) => totalPrayersEver(c) },
+  { id: 'streak_30',        titleKey: 'achStreak30',    descKey: 'achStreak30Desc',    icon: 'fire',                color: '#FF5722', category: 'achTabOther',  xp: 200, goal: 30,   getValue: (c) => anyPrayerStreak(c) },
+  { id: 'friday_4',         titleKey: 'achFriday',      descKey: 'achFridayDesc',      icon: 'calendar-check',      color: '#4CAF50', category: 'achTabPrayer', xp: 150, goal: 4,    getValue: (c) => fridayStreak(c) },
+  { id: 'active_7',         titleKey: 'achWeekHero',    descKey: 'achWeekHeroDesc',    icon: 'shield-star',         color: '#00BCD4', category: 'achTabOther',  xp: 100, goal: 7,    getValue: (c) => Math.min(activeDays(c), 7) },
+  { id: 'dhikr_100',        titleKey: 'achDhikr100',    descKey: 'achDhikr100Desc',    icon: 'circle-outline',      color: COLORS.gold, category: 'achTabDhikr', xp: 75,  goal: 100, getValue: (_, h) => totalDhikrById(h, 'subhanallah') },
+  { id: 'dhikr_500',        titleKey: 'achDhikr500',    descKey: 'achDhikr500Desc',    icon: 'circle-double',       color: '#C8A853', category: 'achTabDhikr', xp: 150, goal: 500,  getValue: (_, h) => totalDhikrById(h, 'subhanallah') },
+  { id: 'salavat_100',      titleKey: 'achSalavat100',  descKey: 'achSalavat100Desc',  icon: 'rotate-right',        color: '#FF8C42', category: 'achTabDhikr', xp: 100, goal: 100,  getValue: (_, h) => totalDhikrById(h, 'salavat') },
+  { id: 'istigfar_100',     titleKey: 'achIstigfar100', descKey: 'achIstigfar100Desc', icon: 'hands-pray',          color: '#E91E63', category: 'achTabDhikr', xp: 100, goal: 100,  getValue: (_, h) => totalDhikrById(h, 'istigfar') },
+  { id: 'dhikr_total_1000', titleKey: 'achDhikr1000',   descKey: 'achDhikr1000Desc',   icon: 'star-circle',         color: '#FFD700', category: 'achTabDhikr', xp: 300, goal: 1000, getValue: (_, h) => totalDhikrAll(h) },
 ];
 
-const FILTER_TABS = ['Tümü', 'Namaz', 'Zikir', 'Diğer'];
-
 const XP_LEVELS = [
-  { level: 1, title: 'Başlangıç',       min: 0 },
-  { level: 2, title: 'Öğrenci',         min: 100 },
-  { level: 3, title: 'İbadet Yolcusu',  min: 300 },
-  { level: 4, title: 'Mümin',           min: 600 },
-  { level: 5, title: 'Takva Sahibi',    min: 1000 },
-  { level: 6, title: 'İbadet Ehli',     min: 1500 },
-  { level: 7, title: 'Sıddık',          min: 2200 },
+  { level: 1, titleKey: 'lvlBeginner',  min: 0 },
+  { level: 2, titleKey: 'lvlStudent',   min: 100 },
+  { level: 3, titleKey: 'lvlTraveler',  min: 300 },
+  { level: 4, titleKey: 'lvlBeliever',  min: 600 },
+  { level: 5, titleKey: 'lvlPious',     min: 1000 },
+  { level: 6, titleKey: 'lvlDevout',    min: 1500 },
+  { level: 7, titleKey: 'lvlSiddiq',    min: 2200 },
 ];
 
 function getLevel(xp: number) {
@@ -192,11 +135,13 @@ function getLevel(xp: number) {
 }
 
 export default function AchievementsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { completion } = usePrayerStore();
   const { history } = useDhikrStore();
-  const [activeFilter, setActiveFilter] = useState('Tümü');
+  const [activeFilter, setActiveFilter] = useState('achTabAll');
   const [detail, setDetail] = useState<(typeof DEFS)[0] | null>(null);
+  const FILTER_TABS = ['achTabAll', 'achTabPrayer', 'achTabDhikr', 'achTabOther'] as const;
 
   const achievements = useMemo(() =>
     DEFS.map(def => {
@@ -206,7 +151,7 @@ export default function AchievementsScreen() {
     }),
   [completion, history]);
 
-  const filtered = activeFilter === 'Tümü' ? achievements : achievements.filter(a => a.category === activeFilter);
+  const filtered = activeFilter === 'achTabAll' ? achievements : achievements.filter(a => a.category === activeFilter);
   const unlockedList = achievements.filter(a => a.unlocked);
   const totalXP = unlockedList.reduce((s, a) => s + a.xp, 0);
   const levelInfo = getLevel(totalXP);
@@ -227,8 +172,8 @@ export default function AchievementsScreen() {
                   <MaterialCommunityIcons name={detailItem.icon as any} size={48} color={detailItem.unlocked ? detailItem.color : COLORS.textMuted} />
                   {!detailItem.unlocked && <View style={styles.lockBadge}><Ionicons name="lock-closed" size={16} color={COLORS.textMuted} /></View>}
                 </View>
-                <Text style={styles.detailTitle}>{detailItem.title}</Text>
-                <Text style={styles.detailDesc}>{detailItem.desc}</Text>
+                <Text style={styles.detailTitle}>{t(detailItem.titleKey as any)}</Text>
+                <Text style={styles.detailDesc}>{t(detailItem.descKey as any)}</Text>
                 <View style={styles.detailProgressRow}>
                   <Text style={styles.detailProgressText}>{detailItem.current} / {detailItem.goal}</Text>
                   <Text style={[styles.detailXP, { color: detailItem.color }]}>+{detailItem.xp} XP</Text>
@@ -236,11 +181,11 @@ export default function AchievementsScreen() {
                 <View style={styles.detailBar}>
                   <View style={[styles.detailFill, { width: `${detailItem.pct}%`, backgroundColor: detailItem.color }]} />
                 </View>
-                <Text style={styles.detailPct}>%{detailItem.pct} tamamlandı</Text>
+                <Text style={styles.detailPct}>{t('achCompleted', { pct: detailItem.pct })}</Text>
                 {detailItem.unlocked && (
                   <View style={styles.unlockedBadge}>
                     <Ionicons name="checkmark-circle" size={16} color={COLORS.green} />
-                    <Text style={styles.unlockedText}>Kazanıldı!</Text>
+                    <Text style={styles.unlockedText}>{t('achUnlocked')}</Text>
                   </View>
                 )}
               </>
@@ -253,7 +198,7 @@ export default function AchievementsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Başarımlar</Text>
+        <Text style={styles.headerTitle}>{t('achievementsTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -264,22 +209,22 @@ export default function AchievementsScreen() {
           <Text style={styles.hexLevel}>{levelInfo.level}</Text>
         </View>
         <View style={styles.levelInfo}>
-          <Text style={styles.levelTitle}>{levelInfo.title}</Text>
-          <Text style={styles.levelSub}>Seviye {levelInfo.level}</Text>
+          <Text style={styles.levelTitle}>{t(levelInfo.titleKey as any)}</Text>
+          <Text style={styles.levelSub}>{t('achLevel', { n: levelInfo.level })}</Text>
           <View style={styles.xpBar}>
             <View style={[styles.xpFill, { width: `${Math.round(levelInfo.progress * 100)}%` }]} />
           </View>
-          <Text style={styles.xpText}>{totalXP} XP{levelInfo.next > totalXP ? ` / ${levelInfo.next} XP` : ' — Maks Seviye'}</Text>
+          <Text style={styles.xpText}>{totalXP} XP{levelInfo.next > totalXP ? ` / ${levelInfo.next} XP` : ` — ${t('achMaxLevel')}`}</Text>
         </View>
         <View style={styles.xpSummary}>
           <Text style={styles.xpSummaryVal}>{unlockedList.length}</Text>
-          <Text style={styles.xpSummaryLabel}>rozet</Text>
+          <Text style={styles.xpSummaryLabel}>{t('achBadges')}</Text>
         </View>
       </View>
 
       {/* Progress bar */}
       <View style={styles.progressRow}>
-        <Text style={styles.progressText}>{unlockedList.length} / {DEFS.length} rozet açıldı</Text>
+        <Text style={styles.progressText}>{unlockedList.length} / {DEFS.length} {t('achBadgesUnlocked')}</Text>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${(unlockedList.length / DEFS.length) * 100}%` }]} />
         </View>
@@ -293,7 +238,7 @@ export default function AchievementsScreen() {
             style={[styles.filterTab, activeFilter === tab && styles.filterTabActive]}
             onPress={() => setActiveFilter(tab)}
           >
-            <Text style={[styles.filterLabel, activeFilter === tab && styles.filterLabelActive]}>{tab}</Text>
+            <Text style={[styles.filterLabel, activeFilter === tab && styles.filterLabelActive]}>{t(tab as any)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -323,7 +268,7 @@ export default function AchievementsScreen() {
               )}
             </View>
             <Text style={[styles.cellTitle, !item.unlocked && { color: COLORS.textMuted }]} numberOfLines={2}>
-              {item.title}
+              {t(item.titleKey as any)}
             </Text>
             {/* Mini progress bar */}
             <View style={styles.miniBar}>

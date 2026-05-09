@@ -3,18 +3,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { usePrayerStore } from '../store/usePrayerStore';
 import { useDhikrStore } from '../store/useDhikrStore';
 import { useGoalsStore } from '../store/useGoalsStore';
 import { DAYS_SHORT_TR, GREGORIAN_MONTHS_TR } from '../services/hijriService';
 
-const TABS = ['Günlük', 'Haftalık', 'Aylık'];
+const WORSHIP_TAB_KEYS = ['worshipTabDaily', 'worshipTabWeekly', 'worshipTabMonthly'] as const;
 const PRAYER_ORDER = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
-const PRAYER_SHORT: Record<string, string> = { fajr: 'Sabah', dhuhr: 'Öğle', asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı' };
+const PRAYER_LABEL_KEYS: Record<string, string> = { fajr: 'prayerFajr', dhuhr: 'prayerDhuhr', asr: 'prayerAsr', maghrib: 'prayerMaghrib', isha: 'prayerIsha' };
 const PRAYER_ICON: Record<string, string> = { fajr: 'weather-night', dhuhr: 'weather-sunny', asr: 'weather-partly-cloudy', maghrib: 'weather-sunset-down', isha: 'moon-waning-crescent' };
 
 export default function WorshipTrackingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const { completion, togglePrayer } = usePrayerStore();
@@ -48,15 +50,15 @@ export default function WorshipTrackingScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>İbadet Takip</Text>
+        <Text style={styles.headerTitle}>{t('worshipTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        {TABS.map((t, i) => (
-          <TouchableOpacity key={t} style={[styles.tab, activeTab === i && styles.tabActive]} onPress={() => setActiveTab(i)}>
-            <Text style={[styles.tabLabel, activeTab === i && styles.tabLabelActive]}>{t}</Text>
+        {WORSHIP_TAB_KEYS.map((key, i) => (
+          <TouchableOpacity key={key} style={[styles.tab, activeTab === i && styles.tabActive]} onPress={() => setActiveTab(i)}>
+            <Text style={[styles.tabLabel, activeTab === i && styles.tabLabelActive]}>{t(key as any)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -74,31 +76,31 @@ export default function WorshipTrackingScreen() {
           <View style={styles.progressCircleWrap}>
             <View style={styles.progressInfo}>
               <Text style={styles.progressPercent}>%{progressPercent}</Text>
-              <Text style={styles.progressLabel}>Tamamlama</Text>
+              <Text style={styles.progressLabel}>{t('worshipCompletion')}</Text>
             </View>
           </View>
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{prayersDone}/5</Text>
-              <Text style={styles.statLabel}>Namaz</Text>
+              <Text style={styles.statLabel}>{t('worshipPrayer')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{goals.filter(g => g.progress >= g.target).length}/{goals.length}</Text>
-              <Text style={styles.statLabel}>Hedefler</Text>
+              <Text style={styles.statLabel}>{t('worshipGoals')}</Text>
             </View>
           </View>
         </View>
 
         {/* Prayer Tracking */}
-        <Text style={styles.sectionTitle}>Namaz Takibi</Text>
+        <Text style={styles.sectionTitle}>{t('worshipPrayerSection')}</Text>
         <View style={styles.prayerGrid}>
           {PRAYER_ORDER.map(key => {
             const done = todayComp[key];
             return (
               <TouchableOpacity key={key} style={[styles.prayerCell, done && styles.prayerCellDone]} onPress={() => togglePrayer(todayKey, key)}>
                 <MaterialCommunityIcons name={PRAYER_ICON[key] as any} size={20} color={done ? COLORS.background : COLORS.gold} />
-                <Text style={[styles.prayerCellLabel, done && { color: COLORS.background }]}>{PRAYER_SHORT[key]}</Text>
+                <Text style={[styles.prayerCellLabel, done && { color: COLORS.background }]}>{t(PRAYER_LABEL_KEYS[key] as any)}</Text>
                 {done && <Ionicons name="checkmark-circle" size={14} color={COLORS.background} />}
               </TouchableOpacity>
             );
@@ -106,7 +108,7 @@ export default function WorshipTrackingScreen() {
         </View>
 
         {/* Daily Goals */}
-        <Text style={styles.sectionTitle}>Günlük Hedefler</Text>
+        <Text style={styles.sectionTitle}>{t('worshipGoalsSection')}</Text>
         <View style={styles.card}>
           {goals.map((goal, i) => {
             const progress = Math.min(goal.progress / goal.target, 1);
@@ -128,7 +130,7 @@ export default function WorshipTrackingScreen() {
         </View>
 
         {/* Weekly View */}
-        <Text style={styles.sectionTitle}>Bu Haftaki Namaz Kaydı</Text>
+        <Text style={styles.sectionTitle}>{t('worshipWeeklySection')}</Text>
         <View style={styles.weekCard}>
           <View style={styles.weekRow}>
             {weekDays.map((d, i) => {

@@ -3,13 +3,16 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { ISLAMIC_EVENTS, IslamicEvent } from '../data/islamicEvents';
 import { GREGORIAN_MONTHS_TR } from '../services/hijriService';
 
-const FILTER_TABS = ['Tümü', 'Bayramlar', 'Kandiller', 'Özel Günler'];
-const TYPE_MAP: Record<string, IslamicEvent['type']> = {
-  Bayramlar: 'bayram', Kandiller: 'kandil', 'Özel Günler': 'ozel',
+type FilterKey = 'all' | 'bayram' | 'kandil' | 'ozel';
+const FILTER_KEYS: FilterKey[] = ['all', 'bayram', 'kandil', 'ozel'];
+const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
+  all: 'upcomingTabAll', bayram: 'upcomingTabEid',
+  kandil: 'upcomingTabKandil', ozel: 'upcomingTabSpecial',
 };
 
 const EVENT_COLORS: Record<IslamicEvent['type'], string> = {
@@ -21,8 +24,9 @@ const EVENT_ICONS: Record<IslamicEvent['type'], string> = {
 };
 
 export default function UpcomingEventsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState('Tümü');
+  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
@@ -35,9 +39,9 @@ export default function UpcomingEventsScreen() {
     .filter(e => e.daysLeft >= 0)
     .sort((a, b) => a.daysLeft - b.daysLeft);
 
-  const filtered = activeFilter === 'Tümü'
+  const filtered = activeFilter === 'all'
     ? allWithDays
-    : allWithDays.filter(e => e.type === TYPE_MAP[activeFilter]);
+    : allWithDays.filter(e => e.type === activeFilter);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -46,15 +50,15 @@ export default function UpcomingEventsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Yaklaşanlar</Text>
+        <Text style={styles.headerTitle}>{t('upcomingTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Filter */}
       <View style={styles.filterRow}>
-        {FILTER_TABS.map(tab => (
-          <TouchableOpacity key={tab} style={[styles.filterTab, activeFilter === tab && styles.filterTabActive]} onPress={() => setActiveFilter(tab)}>
-            <Text style={[styles.filterLabel, activeFilter === tab && styles.filterLabelActive]}>{tab}</Text>
+        {FILTER_KEYS.map(key => (
+          <TouchableOpacity key={key} style={[styles.filterTab, activeFilter === key && styles.filterTabActive]} onPress={() => setActiveFilter(key)}>
+            <Text style={[styles.filterLabel, activeFilter === key && styles.filterLabelActive]}>{t(FILTER_LABEL_KEYS[key] as any)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -79,7 +83,7 @@ export default function UpcomingEventsScreen() {
               </View>
               <View style={[styles.daysBadge, { borderColor: color }]}>
                 <Text style={[styles.daysNum, { color }]}>{item.daysLeft}</Text>
-                <Text style={[styles.daysLabel, { color }]}>GÜN{'\n'}KALDI</Text>
+                <Text style={[styles.daysLabel, { color }]}>{t('upcomingDaysLeft')}</Text>
               </View>
             </View>
           );

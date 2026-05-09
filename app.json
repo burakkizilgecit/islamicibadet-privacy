@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "İslami İbadet",
-    "slug": "islamicibadet",
+    "name": "İbadet Saati",
+    "slug": "ibadetsaati",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -60,7 +60,12 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#C8A853"
+          "color": "#C8A853",
+          "sounds": [
+            "./assets/sounds/ezan.wav",
+            "./assets/sounds/ilahi.wav",
+            "./assets/sounds/salavat.wav"
+          ]
         }
       ],
       [

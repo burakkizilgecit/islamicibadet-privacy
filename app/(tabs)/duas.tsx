@@ -9,6 +9,7 @@ import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
 import { DUAS, DUA_CATEGORIES, type Dua } from '../../data/duas';
+import { useTranslation } from '../../i18n';
 
 export default function DuasScreen() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -16,6 +17,7 @@ export default function DuasScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const isPlayingRef = useRef(false);
+  const { t } = useTranslation();
 
   const filtered = activeCategory === 'all' ? DUAS : DUAS.filter(d => d.category === activeCategory);
 
@@ -63,8 +65,8 @@ export default function DuasScreen() {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dualar</Text>
-        <Text style={styles.headerSub}>{DUAS.length} Dua</Text>
+        <Text style={styles.headerTitle}>{t('duasTitle')}</Text>
+        <Text style={styles.headerSub}>{DUAS.length} {t('duasTitle').toLowerCase()}</Text>
       </View>
 
       {/* Category Filter */}

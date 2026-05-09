@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { ISLAMIC_EVENTS, IslamicEvent } from '../data/islamicEvents';
 import { GREGORIAN_MONTHS_TR } from '../services/hijriService';
 
-const TABS = ['Yıllık Takvim', 'Yaklaşanlar'];
+const CALENDAR_TAB_KEYS = ['calendarTabYearly', 'calendarTabUpcoming'] as const;
 
 const EVENT_COLORS: Record<IslamicEvent['type'], string> = {
   bayram: '#4CAF50',
@@ -22,6 +23,7 @@ const EVENT_ICONS: Record<IslamicEvent['type'], string> = {
 };
 
 export default function IslamicCalendarScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedYear] = useState(new Date().getFullYear());
@@ -56,9 +58,9 @@ export default function IslamicCalendarScreen() {
       </View>
 
       <View style={styles.tabs}>
-        {TABS.map((t, i) => (
-          <TouchableOpacity key={t} style={[styles.tab, activeTab === i && styles.tabActive]} onPress={() => setActiveTab(i)}>
-            <Text style={[styles.tabLabel, activeTab === i && styles.tabLabelActive]}>{t}</Text>
+        {CALENDAR_TAB_KEYS.map((key, i) => (
+          <TouchableOpacity key={key} style={[styles.tab, activeTab === i && styles.tabActive]} onPress={() => setActiveTab(i)}>
+            <Text style={[styles.tabLabel, activeTab === i && styles.tabLabelActive]}>{t(key as any)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -77,7 +79,7 @@ export default function IslamicCalendarScreen() {
               <Text style={styles.monthTitle}>{month}</Text>
               {events.map(event => {
                 const d = new Date(event.date);
-                const dayName = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'][d.getDay()];
+                const dayName = [t('dayFullSun'),t('dayFullMon'),t('dayFullTue'),t('dayFullWed'),t('dayFullThu'),t('dayFullFri'),t('dayFullSat')][d.getDay()];
                 const color = EVENT_COLORS[event.type];
                 return (
                   <View key={event.id} style={styles.eventRow}>

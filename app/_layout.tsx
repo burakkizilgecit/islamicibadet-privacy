@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
@@ -7,6 +7,7 @@ import { useDhikrStore } from '../store/useDhikrStore';
 import { useGoalsStore } from '../store/useGoalsStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useTutorialStore } from '../store/useTutorialStore';
 import {
   setupNotificationChannel,
   setupNotificationHandler,
@@ -15,14 +16,16 @@ import {
 } from '../services/notificationService';
 
 export default function RootLayout() {
-  const loadCompletion   = usePrayerStore(s => s.loadCompletion);
-  const loadDhikr        = useDhikrStore(s => s.loadData);
-  const loadGoals        = useGoalsStore(s => s.loadGoals);
-  const loadSettings     = useSettingsStore(s => s.loadSettings);
+  const router = useRouter();
+  const loadCompletion    = usePrayerStore(s => s.loadCompletion);
+  const loadDhikr         = useDhikrStore(s => s.loadData);
+  const loadGoals         = useGoalsStore(s => s.loadGoals);
+  const loadSettings      = useSettingsStore(s => s.loadSettings);
   const loadNotifications = useNotificationStore(s => s.loadNotifications);
-  const location         = usePrayerStore(s => s.location);
-  const settings         = useSettingsStore(s => s.settings);
-  const notifListener    = useRef<Notifications.EventSubscription | null>(null);
+  const location          = usePrayerStore(s => s.location);
+  const settings          = useSettingsStore(s => s.settings);
+  const { load: loadTutorial, completed: tutorialDone, loaded: tutorialLoaded } = useTutorialStore();
+  const notifListener     = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     // Load persisted data
@@ -31,6 +34,7 @@ export default function RootLayout() {
     loadGoals();
     loadSettings();
     loadNotifications();
+    loadTutorial();
 
     // Set up notification infrastructure
     setupNotificationHandler();
@@ -46,6 +50,13 @@ export default function RootLayout() {
 
     return () => { notifListener.current?.remove(); };
   }, []);
+
+  // Tutorial: ilk yüklenince tamamlanmamışsa yönlendir
+  useEffect(() => {
+    if (tutorialLoaded && !tutorialDone) {
+      router.replace('/tutorial' as any);
+    }
+  }, [tutorialLoaded, tutorialDone]);
 
   // Reschedule notifications when location or settings change
   useEffect(() => {
@@ -66,6 +77,7 @@ export default function RootLayout() {
         <Stack.Screen name="upcoming-events" />
         <Stack.Screen name="quran" />
         <Stack.Screen name="quran-surah" />
+        <Stack.Screen name="tutorial" options={{ gestureEnabled: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style="light" />

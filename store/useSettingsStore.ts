@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { saveData, loadData, STORAGE_KEYS } from '../services/storageService';
 
+export type NotificationSound = 'ezan' | 'ilahi' | 'salavat';
+export type Language = 'tr' | 'en' | 'ar';
+
 export interface AppSettings {
   notifications: {
     prayerTimes: boolean;
@@ -13,6 +16,8 @@ export interface AppSettings {
   silentHours: { start: string; end: string };
   vibration: boolean;
   calculationMethod: string;
+  notificationSound: NotificationSound;
+  language: Language;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -27,6 +32,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   silentHours: { start: '22:00', end: '07:00' },
   vibration: true,
   calculationMethod: 'Turkey',
+  notificationSound: 'ezan',
+  language: 'tr',
 };
 
 interface SettingsStore {

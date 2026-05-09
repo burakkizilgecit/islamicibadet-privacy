@@ -4,47 +4,42 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONT_SIZE, SHADOWS } from '../constants/theme';
+import { useTranslation } from '../i18n';
 
 interface TabConfig {
   route: string;
-  label: string;
+  labelKey: string;
   icon: (active: boolean) => React.ReactNode;
 }
 
 const TABS: TabConfig[] = [
   {
-    route: 'index',
-    label: 'Ana Sayfa',
+    route: 'index', labelKey: 'tabHome',
     icon: (a) => <Ionicons name={a ? 'home' : 'home-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
   {
-    route: 'prayer-times',
-    label: 'Vakitler',
+    route: 'prayer-times', labelKey: 'tabPrayer',
     icon: (a) => <MaterialCommunityIcons name={a ? 'clock-time-five' : 'clock-time-five-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
   {
-    route: 'qibla',
-    label: 'Kıble',
+    route: 'qibla', labelKey: 'tabQibla',
     icon: (a) => <Ionicons name={a ? 'compass' : 'compass-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
   {
-    route: 'dhikr',
-    label: 'Zikir',
+    route: 'dhikr', labelKey: 'tabDhikr',
     icon: (a) => <MaterialCommunityIcons name="circle-outline" size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
   {
-    route: 'mosques',
-    label: 'Camiler',
+    route: 'mosques', labelKey: 'tabMosques',
     icon: (a) => <MaterialCommunityIcons name="mosque" size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
   {
-    route: 'more',
-    label: 'Menü',
+    route: 'more', labelKey: 'tabMenu',
     icon: (a) => <Ionicons name={a ? 'apps' : 'apps-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
   },
 ];
 
-function TabItem({ tab, isActive, onPress }: { tab: TabConfig; isActive: boolean; onPress: () => void }) {
+function TabItem({ tab, isActive, onPress, label }: { tab: TabConfig; isActive: boolean; onPress: () => void; label: string }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const dotAnim   = useRef(new Animated.Value(isActive ? 1 : 0)).current;
 
@@ -63,7 +58,7 @@ function TabItem({ tab, isActive, onPress }: { tab: TabConfig; isActive: boolean
       <Animated.View style={[styles.iconWrap, { transform: [{ scale: scaleAnim }] }, isActive && styles.iconWrapActive]}>
         {tab.icon(isActive)}
       </Animated.View>
-      <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{tab.label}</Text>
+      <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{label}</Text>
       <Animated.View style={[styles.dot, {
         opacity: dotAnim,
         transform: [{ scaleX: dotAnim }],
@@ -74,6 +69,7 @@ function TabItem({ tab, isActive, onPress }: { tab: TabConfig; isActive: boolean
 
 export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const visibleRoutes = state.routes.filter(r => TABS.some(t => t.route === r.name));
 
   return (
@@ -87,10 +83,9 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             <TabItem
               key={route.key}
               tab={tab}
+              label={t(tab.labelKey as any)}
               isActive={isActive}
-              onPress={() => {
-                if (!isActive) navigation.navigate(route.name);
-              }}
+              onPress={() => { if (!isActive) navigation.navigate(route.name); }}
             />
           );
         })}

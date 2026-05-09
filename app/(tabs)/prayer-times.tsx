@@ -7,11 +7,7 @@ import { usePrayerStore } from '../../store/usePrayerStore';
 import { formatPrayerTime, getNextPrayer } from '../../services/prayerService';
 import { formatGregorianDate, GREGORIAN_MONTHS_TR } from '../../services/hijriService';
 import { calculatePrayerTimes } from '../../services/prayerService';
-
-const PRAYER_LABELS: Record<string, string> = {
-  fajr: 'Sabah', sunrise: 'Güneş', dhuhr: 'Öğle',
-  asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı',
-};
+import { useTranslation } from '../../i18n';
 
 type RekatType = 'farz' | 'sünnet' | 'vacip';
 
@@ -23,60 +19,50 @@ interface PrayerPart {
 }
 
 interface PrayerInfo {
-  name: string;
+  nameKey: string;
   totalRakats: number;
   parts: PrayerPart[];
-  tip: string;
+  tipKey: string;
 }
 
-const PRAYER_INFO: Record<string, PrayerInfo> = {
+const PRAYER_INFO_KEYS: Record<string, PrayerInfo> = {
   fajr: {
-    name: 'Sabah Namazı',
-    totalRakats: 4,
+    nameKey: 'prayerInfoFajrName', totalRakats: 4, tipKey: 'prayerInfoFajrTip',
     parts: [
-      { label: 'Sünnet', rakats: 2, type: 'sünnet', note: 'Sünnet-i Müekkede' },
-      { label: 'Farz', rakats: 2, type: 'farz' },
+      { label: 'prayerInfoSunnet', rakats: 2, type: 'sünnet', note: 'prayerInfoSunnetMuakkede' },
+      { label: 'prayerInfoFarz', rakats: 2, type: 'farz' },
     ],
-    tip: 'Sabah namazının sünneti çok kıymetlidir. Hz. Peygamber (s.a.v.) "Sabah namazının iki rekât sünneti, dünya ve içindekilerden daha hayırlıdır." buyurmuştur.',
   },
   dhuhr: {
-    name: 'Öğle Namazı',
-    totalRakats: 10,
+    nameKey: 'prayerInfoDhuhrName', totalRakats: 10, tipKey: 'prayerInfoDhuhrTip',
     parts: [
-      { label: 'İlk Sünnet', rakats: 4, type: 'sünnet', note: 'Sünnet-i Müekkede' },
-      { label: 'Farz', rakats: 4, type: 'farz' },
-      { label: 'Son Sünnet', rakats: 2, type: 'sünnet', note: 'Sünnet-i Müekkede' },
+      { label: 'prayerInfoFirstSunnet', rakats: 4, type: 'sünnet', note: 'prayerInfoSunnetMuakkede' },
+      { label: 'prayerInfoFarz', rakats: 4, type: 'farz' },
+      { label: 'prayerInfoLastSunnet', rakats: 2, type: 'sünnet', note: 'prayerInfoSunnetMuakkede' },
     ],
-    tip: 'Öğle namazının ilk 4 rekât sünneti kılındıktan sonra farz kılınır, ardından 2 rekât son sünnet tamamlanır.',
   },
   asr: {
-    name: 'İkindi Namazı',
-    totalRakats: 8,
+    nameKey: 'prayerInfoAsrName', totalRakats: 8, tipKey: 'prayerInfoAsrTip',
     parts: [
-      { label: 'Sünnet', rakats: 4, type: 'sünnet', note: 'Sünnet-i Gayr-i Müekkede' },
-      { label: 'Farz', rakats: 4, type: 'farz' },
+      { label: 'prayerInfoSunnet', rakats: 4, type: 'sünnet', note: 'prayerInfoSunnetGayr' },
+      { label: 'prayerInfoFarz', rakats: 4, type: 'farz' },
     ],
-    tip: 'İkindi namazının sünneti sünnet-i gayr-i müekkededir; kılınması tavsiye edilir ancak terk edilmesi sabah/öğle sünnetleri kadar günahkâr sayılmaz.',
   },
   maghrib: {
-    name: 'Akşam Namazı',
-    totalRakats: 5,
+    nameKey: 'prayerInfoMaghribName', totalRakats: 5, tipKey: 'prayerInfoMaghribTip',
     parts: [
-      { label: 'Farz', rakats: 3, type: 'farz' },
-      { label: 'Sünnet', rakats: 2, type: 'sünnet', note: 'Sünnet-i Müekkede' },
+      { label: 'prayerInfoFarz', rakats: 3, type: 'farz' },
+      { label: 'prayerInfoSunnet', rakats: 2, type: 'sünnet', note: 'prayerInfoSunnetMuakkede' },
     ],
-    tip: 'Akşam namazında önce 3 rekât farz kılınır. Farzın ardından 2 rekât sünnet tamamlanır.',
   },
   isha: {
-    name: 'Yatsı Namazı',
-    totalRakats: 13,
+    nameKey: 'prayerInfoIshaName', totalRakats: 13, tipKey: 'prayerInfoIshaTip',
     parts: [
-      { label: 'İlk Sünnet', rakats: 4, type: 'sünnet', note: 'Sünnet-i Gayr-i Müekkede' },
-      { label: 'Farz', rakats: 4, type: 'farz' },
-      { label: 'Son Sünnet', rakats: 2, type: 'sünnet', note: 'Sünnet-i Müekkede' },
-      { label: 'Vitir', rakats: 3, type: 'vacip', note: 'Vacip — terk edilmesi mekruhtur' },
+      { label: 'prayerInfoFirstSunnet', rakats: 4, type: 'sünnet', note: 'prayerInfoSunnetGayr' },
+      { label: 'prayerInfoFarz', rakats: 4, type: 'farz' },
+      { label: 'prayerInfoLastSunnet', rakats: 2, type: 'sünnet', note: 'prayerInfoSunnetMuakkede' },
+      { label: 'prayerInfoVitr', rakats: 3, type: 'vacip', note: 'prayerInfoVacipNote' },
     ],
-    tip: 'Vitir namazı Hanefi mezhebine göre vaciptir; kasıtlı terk edilmesi mekruh-u tahrimi sayılır. Yatsı farzından sonra mutlaka kılınmalıdır.',
   },
 };
 
@@ -90,11 +76,17 @@ export default function PrayerTimesScreen() {
   const { prayerTimes, location, togglePrayer, getTodayCompletion } = usePrayerStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [shownTimes, setShownTimes] = useState(prayerTimes);
-  const [infoModal, setInfoModal] = useState<PrayerInfo | null>(null);
+  const [infoModal, setInfoModal] = useState<{ key: string; info: PrayerInfo } | null>(null);
+  const { t } = useTranslation();
   const now = new Date();
   const todayKey = now.toISOString().split('T')[0];
   const completion = getTodayCompletion();
   const nextPrayer = prayerTimes ? getNextPrayer(prayerTimes) : null;
+  const PRAYER_LABEL_KEYS: Record<string, string> = {
+    fajr: 'prayerFajr', sunrise: 'prayerSunrise', dhuhr: 'prayerDhuhr',
+    asr: 'prayerAsr', maghrib: 'prayerMaghrib', isha: 'prayerIsha',
+  };
+  const DAY_KEYS = ['daySun','dayMon','dayTue','dayWed','dayThu','dayFri','daySat'] as const;
   const isToday = selectedDate.toDateString() === now.toDateString();
 
   useEffect(() => {
@@ -115,7 +107,7 @@ export default function PrayerTimesScreen() {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Namaz Vakitleri</Text>
+        <Text style={styles.headerTitle}>{t('prayerTimesTitle')}</Text>
         <Text style={styles.headerCity}>{location?.city ?? '...'}</Text>
       </View>
 
@@ -138,7 +130,7 @@ export default function PrayerTimesScreen() {
         {(['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((key) => {
           const time = shownTimes?.[key];
           const isPast = time ? time < now : false;
-          const isNext = isToday && nextPrayer?.name === PRAYER_LABELS[key];
+          const isNext = isToday && nextPrayer?.key === key;
           const isToggleable = toggleablePrayers.includes(key as any);
           const isDone = isToday && isToggleable && completion[key as keyof typeof completion];
 
@@ -153,21 +145,21 @@ export default function PrayerTimesScreen() {
               </View>
               <View style={styles.prayerInfo}>
                 <View style={styles.prayerNameRow}>
-                  <Text style={[styles.prayerName, isNext && { color: COLORS.gold }]}>{PRAYER_LABELS[key]}</Text>
-                  {PRAYER_INFO[key] && (
+                  <Text style={[styles.prayerName, isNext && { color: COLORS.gold }]}>{t(PRAYER_LABEL_KEYS[key] as any)}</Text>
+                  {PRAYER_INFO_KEYS[key] && (
                     <TouchableOpacity
                       style={styles.infoBtn}
-                      onPress={() => setInfoModal(PRAYER_INFO[key])}
+                      onPress={() => setInfoModal({ key, info: PRAYER_INFO_KEYS[key] })}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Text style={styles.infoBtnText}>i</Text>
                     </TouchableOpacity>
                   )}
                 </View>
-                {isNext && <Text style={styles.nextLabel}>Sıradaki</Text>}
-                {isDone && <Text style={styles.doneLabel}>Kılındı ✓</Text>}
+                {isNext && <Text style={styles.nextLabel}>{t('prayerNext')}</Text>}
+                {isDone && <Text style={styles.doneLabel}>{t('prayerDoneLabel')}</Text>}
                 {isPast && !isNext && !isDone && isToday && (
-                  <Text style={styles.pastLabel}>Geçti</Text>
+                  <Text style={styles.pastLabel}>{t('prayerPast')}</Text>
                 )}
               </View>
               <View style={styles.prayerRight}>
@@ -193,28 +185,28 @@ export default function PrayerTimesScreen() {
           <Pressable style={styles.modalOverlay} onPress={() => setInfoModal(null)}>
             <Pressable style={styles.modalSheet} onPress={() => {}}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{infoModal?.name}</Text>
+                <Text style={styles.modalTitle}>{infoModal ? t(infoModal.info.nameKey as any) : ''}</Text>
                 <TouchableOpacity onPress={() => setInfoModal(null)} style={styles.modalClose}>
                   <Ionicons name="close" size={20} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Toplam</Text>
-                <Text style={styles.totalValue}>{infoModal?.totalRakats} Rekat</Text>
+                <Text style={styles.totalLabel}>{t('prayerInfoTotal')}</Text>
+                <Text style={styles.totalValue}>{infoModal?.info.totalRakats} {t('prayerInfoRakats')}</Text>
               </View>
 
               <View style={styles.partsTable}>
                 <View style={styles.tableHeader}>
-                  <Text style={[styles.tableCell, styles.tableCellFlex]}>Namaz</Text>
-                  <Text style={styles.tableCell}>Rekat</Text>
-                  <Text style={[styles.tableCell, styles.tableCellType]}>Tür</Text>
+                  <Text style={[styles.tableCell, styles.tableCellFlex]}>{t('prayerInfoName')}</Text>
+                  <Text style={styles.tableCell}>{t('prayerInfoRakats')}</Text>
+                  <Text style={[styles.tableCell, styles.tableCellType]}>{t('prayerInfoType')}</Text>
                 </View>
-                {infoModal?.parts.map((part, idx) => (
+                {infoModal?.info.parts.map((part, idx) => (
                   <View key={idx} style={[styles.tableRow, idx % 2 === 0 && styles.tableRowAlt]}>
                     <View style={styles.tableCellFlex}>
-                      <Text style={styles.partLabel}>{part.label}</Text>
-                      {part.note && <Text style={styles.partNote}>{part.note}</Text>}
+                      <Text style={styles.partLabel}>{t(part.label as any)}</Text>
+                      {part.note && <Text style={styles.partNote}>{t(part.note as any)}</Text>}
                     </View>
                     <Text style={styles.partRakats}>{part.rakats}</Text>
                     <View style={styles.tableCellType}>
@@ -225,17 +217,17 @@ export default function PrayerTimesScreen() {
                         <Text style={[styles.typeBadgeText,
                           part.type === 'farz' && { color: COLORS.gold },
                           part.type === 'vacip' && { color: '#e57373' },
-                        ]}>{part.type}</Text>
+                        ]}>{t(('prayerType' + part.type.charAt(0).toUpperCase() + part.type.slice(1)) as any)}</Text>
                       </View>
                     </View>
                   </View>
                 ))}
               </View>
 
-              {infoModal?.tip && (
+              {infoModal?.info.tipKey && (
                 <View style={styles.tipBox}>
                   <Ionicons name="bulb-outline" size={14} color={COLORS.gold} style={{ marginTop: 1 }} />
-                  <Text style={styles.tipText}>{infoModal.tip}</Text>
+                  <Text style={styles.tipText}>{t(infoModal.info.tipKey as any)}</Text>
                 </View>
               )}
             </Pressable>
@@ -244,9 +236,10 @@ export default function PrayerTimesScreen() {
 
         {/* Weekly Summary */}
         <View style={styles.weekCard}>
-          <Text style={styles.weekTitle}>Bu Haftaki Namaz Takibi</Text>
+          <Text style={styles.weekTitle}>{t('weeklyTitle')}</Text>
           <View style={styles.weekRow}>
-            {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((day, i) => {
+            {DAY_KEYS.map((dayKey, i) => {
+              const day = t(dayKey);
               const d = new Date();
               const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1;
               const diff = i - dayOfWeek;

@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { useGoalsStore } from '../store/useGoalsStore';
 
 export default function DailyGoalsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { goals, setTarget, updateProgress } = useGoalsStore();
   const [targets, setTargets] = useState<Record<string, string>>(

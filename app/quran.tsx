@@ -6,12 +6,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from '../i18n';
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { SURAHS, type SurahMeta } from '../data/quranData';
 
 const JUZ_STARTS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
 
 export default function QuranScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'sureler' | 'favoriler'>('sureler');
