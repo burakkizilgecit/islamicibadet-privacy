@@ -43,7 +43,7 @@ const SOUNDS: { key: NotificationSound; label: string; desc: string; icon: strin
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
 import { useSettingsStore, type AppSettings } from '../store/useSettingsStore';
 
-const PRIVACY_POLICY_URL = 'https://burakkizilgecit.github.io/islamicibadet-privacy';
+const PRIVACY_POLICY_URL = 'https://burakkizilgecit.github.io/islamicibadet-privacy/privacy-policy.html';
 const APP_VERSION = '1.0.0';
 
 type NotifKey = keyof AppSettings['notifications'];
