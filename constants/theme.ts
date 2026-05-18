@@ -3,7 +3,7 @@ export const Colors = {
   dark:  { text: '#ECEDEE', background: '#151718', tint: '#fff', icon: '#9BA1A6', tabIconDefault: '#9BA1A6', tabIconSelected: '#fff' },
 };
 
-export const COLORS = {
+export const DARK_COLORS = {
   // Backgrounds — layered depth system
   background:          '#080C16',
   backgroundSecondary: '#0C1020',
@@ -41,6 +41,39 @@ export const COLORS = {
   tabInactive:'#3A4560',
   overlay:    'rgba(0,0,0,0.6)',
 };
+
+export const LIGHT_COLORS = {
+  background:          '#FBF8F2',
+  backgroundSecondary: '#F5EFE4',
+  surface:             '#EDE6D8',
+  surfaceElevated:     '#E8DFD0',
+  cardBg:              '#FFFFFF',
+  cardBorder:          '#E0D5C2',
+  cardBorderActive:    '#C9B99A',
+  gold:                '#C4922A',
+  goldLight:           '#D4A840',
+  goldDim:             '#9A7220',
+  goldGlow:            'rgba(196,146,42,0.15)',
+  textPrimary:         '#1C1308',
+  textSecondary:       '#6B5438',
+  textMuted:           '#A8916A',
+  textInverse:         '#FFFFFF',
+  green:               '#2A7A3C',
+  greenBg:             'rgba(42,122,60,0.1)',
+  red:                 '#C0392B',
+  redBg:               'rgba(192,57,43,0.1)',
+  blue:                '#1B4F8A',
+  blueBg:              'rgba(27,79,138,0.1)',
+  orange:              '#C85A00',
+  orangeBg:            'rgba(200,90,0,0.1)',
+  tabBar:              '#FAF6EE',
+  tabActive:           '#C4922A',
+  tabInactive:         '#C0AE90',
+  overlay:             'rgba(0,0,0,0.35)',
+};
+
+// Backward compatibility alias (dark theme)
+export const COLORS = DARK_COLORS;
 
 export const SPACING = {
   xs:  4,

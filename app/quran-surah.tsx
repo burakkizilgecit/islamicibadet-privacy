@@ -8,11 +8,14 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Audio } from 'expo-av';
 import { useTranslation } from '../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { fetchSurah, type Verse, type SurahMeta } from '../data/quranData';
 
 export default function QuranSurahScreen() {
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const { number } = useLocalSearchParams<{ number: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -154,13 +157,13 @@ export default function QuranSurahScreen() {
           </View>
           <View style={styles.actionBtns}>
             <TouchableOpacity style={[styles.actionBtn, isPlaying && styles.actionBtnActive]} onPress={() => playAudio(item)}>
-              <Ionicons name={isPlaying ? 'pause' : 'play'} size={16} color={isPlaying ? COLORS.background : COLORS.gold} />
+              <Ionicons name={isPlaying ? 'pause' : 'play'} size={16} color={isPlaying ? colors.background : colors.gold} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => toggleBookmark(item.number)}>
-              <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={16} color={isBookmarked ? COLORS.gold : COLORS.textMuted} />
+              <Ionicons name={isBookmarked ? 'bookmark' : 'bookmark-outline'} size={16} color={isBookmarked ? colors.gold : colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={() => shareVerse(item)}>
-              <Ionicons name="share-social-outline" size={16} color={COLORS.textMuted} />
+              <Ionicons name="share-social-outline" size={16} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
@@ -173,11 +176,11 @@ export default function QuranSurahScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           {meta && (
@@ -188,21 +191,21 @@ export default function QuranSurahScreen() {
           )}
         </View>
         <TouchableOpacity style={styles.backBtn} onPress={loadSurah}>
-          <Ionicons name="refresh" size={20} color={COLORS.textMuted} />
+          <Ionicons name="refresh" size={20} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={COLORS.gold} size="large" />
+          <ActivityIndicator color={colors.gold} size="large" />
           <Text style={styles.loadingText}>Sure yükleniyor...</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
-          <MaterialCommunityIcons name="book-open-variant" size={40} color={COLORS.textMuted} />
+          <MaterialCommunityIcons name="book-open-variant" size={40} color={colors.textMuted} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadSurah}>
-            <Ionicons name="refresh" size={16} color={COLORS.background} />
+            <Ionicons name="refresh" size={16} color={colors.background} />
             <Text style={styles.retryText}>Tekrar Dene</Text>
           </TouchableOpacity>
         </View>
@@ -218,7 +221,7 @@ export default function QuranSurahScreen() {
               <Text style={styles.surahHeaderTr}>{meta?.nameTurkish} Suresi</Text>
               <View style={styles.surahHeaderMeta}>
                 <View style={[styles.revBadge, { backgroundColor: meta?.revelationType === 'Meccan' ? 'rgba(200,168,83,0.15)' : 'rgba(76,175,80,0.15)' }]}>
-                  <Text style={[styles.revBadgeText, { color: meta?.revelationType === 'Meccan' ? COLORS.gold : COLORS.green }]}>
+                  <Text style={[styles.revBadgeText, { color: meta?.revelationType === 'Meccan' ? colors.gold : colors.green }]}>
                     {meta?.revelationType === 'Meccan' ? '🕋 Mekke' : '🕌 Medine'}
                   </Text>
                 </View>
@@ -230,7 +233,7 @@ export default function QuranSurahScreen() {
                 <Ionicons
                   name={isPlayingAll ? 'stop-circle' : 'play-circle'}
                   size={18}
-                  color={isPlayingAll ? COLORS.background : COLORS.gold}
+                  color={isPlayingAll ? colors.background : colors.gold}
                 />
                 <Text style={[styles.playAllText, isPlayingAll && styles.playAllTextActive]}>
                   {isPlayingAll ? t('quranStop') : t('quranPlayAll')}
@@ -246,36 +249,36 @@ export default function QuranSurahScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container:        { flex: 1, backgroundColor: colors.background },
   header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   backBtn:          { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerCenter:     { flex: 1, alignItems: 'center' },
-  headerArabic:     { color: COLORS.gold, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  headerTitle:      { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs },
+  headerArabic:     { color: colors.gold, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  headerTitle:      { color: colors.textSecondary, fontSize: FONT_SIZE.xs },
   center:           { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
-  loadingText:      { color: COLORS.textMuted, fontSize: FONT_SIZE.sm },
-  errorText:        { color: COLORS.textMuted, fontSize: FONT_SIZE.sm, textAlign: 'center', paddingHorizontal: SPACING.lg },
-  retryBtn:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
-  retryText:        { color: COLORS.background, fontSize: FONT_SIZE.sm, fontWeight: '700' },
-  surahHeader:      { alignItems: 'center', paddingVertical: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorder },
-  surahHeaderAr:    { color: COLORS.textPrimary, fontSize: 36, fontWeight: '300', marginBottom: 4 },
-  surahHeaderTr:    { color: COLORS.gold, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  loadingText:      { color: colors.textMuted, fontSize: FONT_SIZE.sm },
+  errorText:        { color: colors.textMuted, fontSize: FONT_SIZE.sm, textAlign: 'center', paddingHorizontal: SPACING.lg },
+  retryBtn:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
+  retryText:        { color: colors.background, fontSize: FONT_SIZE.sm, fontWeight: '700' },
+  surahHeader:      { alignItems: 'center', paddingVertical: SPACING.lg, marginBottom: SPACING.md, backgroundColor: colors.cardBg, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: colors.cardBorder },
+  surahHeaderAr:    { color: colors.textPrimary, fontSize: 36, fontWeight: '300', marginBottom: 4 },
+  surahHeaderTr:    { color: colors.gold, fontSize: FONT_SIZE.lg, fontWeight: '700' },
   surahHeaderMeta:  { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm },
   revBadge:         { borderRadius: RADIUS.full, paddingHorizontal: SPACING.md, paddingVertical: 4 },
   revBadgeText:     { fontSize: FONT_SIZE.xs, fontWeight: '600' },
-  bismillah:        { color: COLORS.gold, fontSize: 22, textAlign: 'center', marginBottom: SPACING.md, lineHeight: 36 },
-  verseCard:        { backgroundColor: COLORS.cardBg, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.cardBorder, padding: SPACING.md },
-  arabicText:       { color: COLORS.textPrimary, fontSize: 24, lineHeight: 46, textAlign: 'right', fontWeight: '400', marginBottom: SPACING.sm },
-  verseActions:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.cardBorder, paddingTop: SPACING.sm },
+  bismillah:        { color: colors.gold, fontSize: 22, textAlign: 'center', marginBottom: SPACING.md, lineHeight: 36 },
+  verseCard:        { backgroundColor: colors.cardBg, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: colors.cardBorder, padding: SPACING.md },
+  arabicText:       { color: colors.textPrimary, fontSize: 24, lineHeight: 46, textAlign: 'right', fontWeight: '400', marginBottom: SPACING.sm },
+  verseActions:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm, borderTopWidth: 1, borderTopColor: colors.cardBorder, paddingTop: SPACING.sm },
   verseNumBadge:    { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(200,168,83,0.15)', alignItems: 'center', justifyContent: 'center' },
-  verseNum:         { color: COLORS.gold, fontSize: FONT_SIZE.xs, fontWeight: '700' },
+  verseNum:         { color: colors.gold, fontSize: FONT_SIZE.xs, fontWeight: '700' },
   actionBtns:       { flexDirection: 'row', gap: SPACING.xs },
-  actionBtn:        { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.cardBorder, alignItems: 'center', justifyContent: 'center' },
-  actionBtnActive:  { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  turkishText:      { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, lineHeight: 22 },
-  playAllBtn:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.gold },
-  playAllBtnActive: { backgroundColor: COLORS.gold },
-  playAllText:      { color: COLORS.gold, fontSize: FONT_SIZE.sm, fontWeight: '600' },
-  playAllTextActive:{ color: COLORS.background },
+  actionBtn:        { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center' },
+  actionBtnActive:  { backgroundColor: colors.gold, borderColor: colors.gold },
+  turkishText:      { color: colors.textSecondary, fontSize: FONT_SIZE.sm, lineHeight: 22 },
+  playAllBtn:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: RADIUS.full, borderWidth: 1, borderColor: colors.gold },
+  playAllBtnActive: { backgroundColor: colors.gold },
+  playAllText:      { color: colors.gold, fontSize: FONT_SIZE.sm, fontWeight: '600' },
+  playAllTextActive:{ color: colors.background },
 });

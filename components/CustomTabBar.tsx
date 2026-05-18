@@ -1,45 +1,29 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, FONT_SIZE, SHADOWS } from '../constants/theme';
+import { FONT_SIZE, SHADOWS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n';
 
 interface TabConfig {
   route: string;
   labelKey: string;
-  icon: (active: boolean) => React.ReactNode;
+  iconName: { active: string; inactive: string; lib: 'ion' | 'mci' };
 }
 
 const TABS: TabConfig[] = [
-  {
-    route: 'index', labelKey: 'tabHome',
-    icon: (a) => <Ionicons name={a ? 'home' : 'home-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
-  {
-    route: 'prayer-times', labelKey: 'tabPrayer',
-    icon: (a) => <MaterialCommunityIcons name={a ? 'clock-time-five' : 'clock-time-five-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
-  {
-    route: 'qibla', labelKey: 'tabQibla',
-    icon: (a) => <Ionicons name={a ? 'compass' : 'compass-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
-  {
-    route: 'dhikr', labelKey: 'tabDhikr',
-    icon: (a) => <MaterialCommunityIcons name="circle-outline" size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
-  {
-    route: 'mosques', labelKey: 'tabMosques',
-    icon: (a) => <MaterialCommunityIcons name="mosque" size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
-  {
-    route: 'more', labelKey: 'tabMenu',
-    icon: (a) => <Ionicons name={a ? 'apps' : 'apps-outline'} size={22} color={a ? COLORS.gold : COLORS.tabInactive} />,
-  },
+  { route: 'index',        labelKey: 'tabHome',   iconName: { active: 'home',         inactive: 'home-outline',              lib: 'ion' } },
+  { route: 'prayer-times', labelKey: 'tabPrayer', iconName: { active: 'clock-time-five', inactive: 'clock-time-five-outline', lib: 'mci' } },
+  { route: 'qibla',        labelKey: 'tabQibla',  iconName: { active: 'compass',       inactive: 'compass-outline',           lib: 'ion' } },
+  { route: 'dhikr',        labelKey: 'tabDhikr',  iconName: { active: 'circle-outline',inactive: 'circle-outline',           lib: 'mci' } },
+  { route: 'mosques',      labelKey: 'tabMosques',iconName: { active: 'mosque',        inactive: 'mosque',                    lib: 'mci' } },
+  { route: 'more',         labelKey: 'tabMenu',   iconName: { active: 'apps',          inactive: 'apps-outline',              lib: 'ion' } },
 ];
 
 function TabItem({ tab, isActive, onPress, label }: { tab: TabConfig; isActive: boolean; onPress: () => void; label: string }) {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const dotAnim   = useRef(new Animated.Value(isActive ? 1 : 0)).current;
 
@@ -53,27 +37,35 @@ function TabItem({ tab, isActive, onPress, label }: { tab: TabConfig; isActive: 
     ]).start();
   }, [isActive]);
 
+  const iconColor = isActive ? colors.tabActive : colors.tabInactive;
+  const iconName  = isActive ? tab.iconName.active : tab.iconName.inactive;
+
   return (
     <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.7}>
-      <Animated.View style={[styles.iconWrap, { transform: [{ scale: scaleAnim }] }, isActive && styles.iconWrapActive]}>
-        {tab.icon(isActive)}
+      <Animated.View style={[
+        styles.iconWrap,
+        { transform: [{ scale: scaleAnim }] },
+        isActive && { backgroundColor: colors.goldGlow },
+      ]}>
+        {tab.iconName.lib === 'mci'
+          ? <MaterialCommunityIcons name={iconName as any} size={22} color={iconColor} />
+          : <Ionicons name={iconName as any} size={22} color={iconColor} />
+        }
       </Animated.View>
-      <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{label}</Text>
-      <Animated.View style={[styles.dot, {
-        opacity: dotAnim,
-        transform: [{ scaleX: dotAnim }],
-      }]} />
+      <Text style={[styles.label, { color: colors.tabInactive }, isActive && { color: colors.tabActive, fontWeight: '700' }]} numberOfLines={1}>{label}</Text>
+      <Animated.View style={[styles.dot, { backgroundColor: colors.tabActive, opacity: dotAnim, transform: [{ scaleX: dotAnim }] }]} />
     </TouchableOpacity>
   );
 }
 
 export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const visibleRoutes = state.routes.filter(r => TABS.some(t => t.route === r.name));
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[styles.container, { backgroundColor: colors.tabBar, paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.bar}>
         {visibleRoutes.map((route) => {
           const tab = TABS.find(t => t.route === route.name);
@@ -96,7 +88,6 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.tabBar,
     borderTopWidth: 1,
     borderTopColor: 'rgba(30,42,64,0.8)',
     ...SHADOWS.md,
@@ -118,24 +109,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 12,
   },
-  iconWrapActive: {
-    backgroundColor: COLORS.goldGlow,
-  },
   label: {
     fontSize: 10,
-    color: COLORS.tabInactive,
     fontWeight: '500',
     letterSpacing: 0.2,
-  },
-  labelActive: {
-    color: COLORS.gold,
-    fontWeight: '700',
   },
   dot: {
     width: 16,
     height: 3,
     borderRadius: 2,
-    backgroundColor: COLORS.gold,
     marginTop: 1,
   },
 });

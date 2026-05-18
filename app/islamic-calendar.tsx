@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from '../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ISLAMIC_EVENTS, IslamicEvent } from '../data/islamicEvents';
 import { GREGORIAN_MONTHS_TR } from '../services/hijriService';
 
@@ -12,7 +13,7 @@ const CALENDAR_TAB_KEYS = ['calendarTabYearly', 'calendarTabUpcoming'] as const;
 
 const EVENT_COLORS: Record<IslamicEvent['type'], string> = {
   bayram: '#4CAF50',
-  kandil: COLORS.gold,
+  kandil: '#D4A84B',
   ozel: '#2196F3',
 };
 
@@ -24,6 +25,8 @@ const EVENT_ICONS: Record<IslamicEvent['type'], string> = {
 
 export default function IslamicCalendarScreen() {
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedYear] = useState(new Date().getFullYear());
@@ -48,10 +51,10 @@ export default function IslamicCalendarScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Dini Günler Takvimi</Text>
         <View style={{ width: 40 }} />
@@ -69,9 +72,9 @@ export default function IslamicCalendarScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: SPACING.md }}>
           {/* Year selector */}
           <View style={styles.yearRow}>
-            <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+            <Ionicons name="chevron-back" size={20} color={colors.gold} />
             <Text style={styles.yearText}>{selectedYear}</Text>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.gold} />
+            <Ionicons name="chevron-forward" size={20} color={colors.gold} />
           </View>
 
           {monthGroups.map(({ month, events }) => (
@@ -95,7 +98,7 @@ export default function IslamicCalendarScreen() {
                       {event.description && <Text style={styles.eventDesc}>{event.description}</Text>}
                     </View>
                     <TouchableOpacity style={styles.bellBtn}>
-                      <Ionicons name="notifications-outline" size={18} color={COLORS.textMuted} />
+                      <Ionicons name="notifications-outline" size={18} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 );
@@ -130,34 +133,34 @@ export default function IslamicCalendarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  tabs: { flexDirection: 'row', marginHorizontal: SPACING.md, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, padding: 3, borderColor: COLORS.cardBorder, borderWidth: 1, marginBottom: SPACING.sm },
+  headerTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  tabs: { flexDirection: 'row', marginHorizontal: SPACING.md, backgroundColor: colors.cardBg, borderRadius: RADIUS.full, padding: 3, borderColor: colors.cardBorder, borderWidth: 1, marginBottom: SPACING.sm },
   tab: { flex: 1, paddingVertical: SPACING.xs + 2, alignItems: 'center', borderRadius: RADIUS.full },
-  tabActive: { backgroundColor: COLORS.gold },
-  tabLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
-  tabLabelActive: { color: COLORS.background, fontWeight: '700' },
+  tabActive: { backgroundColor: colors.gold },
+  tabLabel: { color: colors.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
+  tabLabelActive: { color: colors.background, fontWeight: '700' },
   yearRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.md, marginBottom: SPACING.md },
-  yearText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  yearText: { color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
   monthSection: { marginBottom: SPACING.md },
-  monthTitle: { color: COLORS.gold, fontSize: FONT_SIZE.md, fontWeight: '700', marginBottom: SPACING.sm },
-  eventRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.sm, marginBottom: SPACING.sm, gap: SPACING.sm },
+  monthTitle: { color: colors.gold, fontSize: FONT_SIZE.md, fontWeight: '700', marginBottom: SPACING.sm },
+  eventRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.sm, marginBottom: SPACING.sm, gap: SPACING.sm },
   eventDateBox: { width: 48, height: 48, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center' },
   eventDay: { fontSize: FONT_SIZE.lg, fontWeight: '700' },
   eventDayName: { fontSize: FONT_SIZE.xs },
   eventInfo: { flex: 1 },
   eventTitleRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  eventName: { color: COLORS.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '600' },
-  eventDesc: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
+  eventName: { color: colors.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '600' },
+  eventDesc: { color: colors.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
   bellBtn: { padding: SPACING.xs },
-  upcomingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, gap: SPACING.md },
+  upcomingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, gap: SPACING.md },
   upcomingIcon: { width: 52, height: 52, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
   upcomingInfo: { flex: 1 },
-  upcomingName: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600' },
-  upcomingDate: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
+  upcomingName: { color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600' },
+  upcomingDate: { color: colors.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
   daysLeftBadge: { alignItems: 'center', borderWidth: 1, borderRadius: RADIUS.md, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, minWidth: 54 },
   daysLeftNum: { fontSize: FONT_SIZE.xl, fontWeight: '700' },
   daysLeftLabel: { fontSize: FONT_SIZE.xs },

@@ -2,6 +2,8 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
+import { ThemeProvider } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { requestWidgetUpdate } from 'react-native-android-widget';
 import * as Notifications from 'expo-notifications';
 import { usePrayerStore } from '../store/usePrayerStore';
@@ -18,8 +20,9 @@ import {
   scheduleAllNotifications,
 } from '../services/notificationService';
 
-export default function RootLayout() {
+function RootLayoutInner() {
   const router = useRouter();
+  const { isDark } = useTheme();
   const loadCompletion    = usePrayerStore(s => s.loadCompletion);
   const loadDhikr         = useDhikrStore(s => s.loadData);
   const loadGoals         = useGoalsStore(s => s.loadGoals);
@@ -93,7 +96,15 @@ export default function RootLayout() {
         <Stack.Screen name="tutorial" options={{ gestureEnabled: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutInner />
+    </ThemeProvider>
   );
 }

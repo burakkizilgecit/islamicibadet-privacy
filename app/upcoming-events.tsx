@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from '../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ISLAMIC_EVENTS, IslamicEvent } from '../data/islamicEvents';
 import { GREGORIAN_MONTHS_TR } from '../services/hijriService';
 
@@ -16,7 +17,7 @@ const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
 };
 
 const EVENT_COLORS: Record<IslamicEvent['type'], string> = {
-  bayram: '#4CAF50', kandil: COLORS.gold, ozel: '#2196F3',
+  bayram: '#4CAF50', kandil: '#D4A84B', ozel: '#2196F3',
 };
 
 const EVENT_ICONS: Record<IslamicEvent['type'], string> = {
@@ -25,6 +26,8 @@ const EVENT_ICONS: Record<IslamicEvent['type'], string> = {
 
 export default function UpcomingEventsScreen() {
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const now = new Date();
@@ -45,10 +48,10 @@ export default function UpcomingEventsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('upcomingTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -93,22 +96,22 @@ export default function UpcomingEventsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  headerTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
   filterRow: { flexDirection: 'row', paddingHorizontal: SPACING.md, gap: SPACING.xs, marginBottom: SPACING.sm },
-  filterTab: { paddingHorizontal: SPACING.sm + 2, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1 },
-  filterTabActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  filterLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
-  filterLabelActive: { color: COLORS.background, fontWeight: '700' },
-  eventCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.md },
+  filterTab: { paddingHorizontal: SPACING.sm + 2, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1 },
+  filterTabActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  filterLabel: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
+  filterLabelActive: { color: colors.background, fontWeight: '700' },
+  eventCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.md },
   eventIcon: { width: 56, height: 56, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
   eventInfo: { flex: 1 },
-  eventName: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
-  eventDate: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
-  eventDesc: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, marginTop: 3 },
+  eventName: { color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
+  eventDate: { color: colors.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
+  eventDesc: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, marginTop: 3 },
   daysBadge: { alignItems: 'center', borderWidth: 2, borderRadius: RADIUS.md, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs, minWidth: 60 },
   daysNum: { fontSize: FONT_SIZE.xxl, fontWeight: '900' },
   daysLabel: { fontSize: 9, fontWeight: '700', textAlign: 'center', letterSpacing: 0.5 },

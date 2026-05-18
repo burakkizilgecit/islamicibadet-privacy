@@ -10,7 +10,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from '../../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const { height } = Dimensions.get('window');
 const MOSQUE_IMG = require('../../assets/images/mosque-day.png');
@@ -145,6 +146,8 @@ async function fetchNearbyMosques(lat: number, lng: number, radiusM = 5000): Pro
 function FilterModal({
   visible, current, onApply, onClose,
 }: { visible: boolean; current: number; onApply: (v: number) => void; onClose: () => void }) {
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const { t } = useTranslation();
   const [preset, setPreset] = useState<number | null>(current);
   const [custom, setCustom] = useState('');
@@ -190,7 +193,7 @@ function FilterModal({
                 value={custom}
                 onChangeText={v => { setCustom(v.replace(/[^0-9]/g, '')); setPreset(null); }}
                 placeholder="örn. 750"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 maxLength={5}
               />
@@ -200,10 +203,10 @@ function FilterModal({
 
           {/* Active filter summary */}
           <View style={styles.summaryRow}>
-            <Ionicons name="information-circle-outline" size={15} color={COLORS.textMuted} />
+            <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />
             <Text style={styles.summaryText}>
               Seçili filtre:{' '}
-              <Text style={{ color: COLORS.gold, fontWeight: '700' }}>
+              <Text style={{ color: colors.gold, fontWeight: '700' }}>
                 {custom.trim() !== '' ? `${custom} m` : fmtDistance(preset ?? current)}
               </Text>{' '}
               ve daha yakın camiler gösterilecek
@@ -221,6 +224,7 @@ function FilterModal({
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 export default function MosquesScreen() {
+  const { colors, fs } = useTheme();
   const { t } = useTranslation();
   const mapRef = useRef<MapView>(null);
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
@@ -234,6 +238,7 @@ export default function MosquesScreen() {
   const [showFilter, setShowFilter] = useState(false);
   const slideAnim = useRef(new Animated.Value(120)).current;
 
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const filteredMosques = allMosques.filter(m => m.distance <= maxDist);
 
   const loadData = async () => {
@@ -325,7 +330,7 @@ export default function MosquesScreen() {
         {filteredMosques.map(m => (
           <Marker key={m.id} coordinate={{ latitude: m.lat, longitude: m.lng }} onPress={() => selectMosque(m)} tracksViewChanges={false}>
             <View style={[styles.marker, selected?.id === m.id && styles.markerActive]}>
-              <MaterialCommunityIcons name="mosque" size={16} color={selected?.id === m.id ? COLORS.background : COLORS.gold} />
+              <MaterialCommunityIcons name="mosque" size={16} color={selected?.id === m.id ? colors.background : colors.gold} />
             </View>
           </Marker>
         ))}
@@ -340,7 +345,7 @@ export default function MosquesScreen() {
             <Text style={styles.headerSub}>Konumunuza en yakın camileri görüntüleyin</Text>
           </View>
           <TouchableOpacity style={styles.locateBtn} onPress={loadData} disabled={fetching}>
-            {fetching ? <ActivityIndicator size="small" color={COLORS.gold} /> : <Ionicons name="locate" size={20} color={COLORS.gold} />}
+            {fetching ? <ActivityIndicator size="small" color={colors.gold} /> : <Ionicons name="locate" size={20} color={colors.gold} />}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -348,7 +353,7 @@ export default function MosquesScreen() {
       {/* Recenter */}
       {userLoc && (
         <TouchableOpacity style={styles.recenterBtn} onPress={() => mapRef.current?.animateToRegion({ latitude: userLoc.lat, longitude: userLoc.lng, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 600)}>
-          <Ionicons name="navigate" size={20} color={COLORS.gold} />
+          <Ionicons name="navigate" size={20} color={colors.gold} />
         </TouchableOpacity>
       )}
 
@@ -358,7 +363,7 @@ export default function MosquesScreen() {
         {/* Sort + Filter row */}
         <View style={styles.sortRow}>
           <View style={styles.sortLeft}>
-            <MaterialCommunityIcons name="sort" size={15} color={COLORS.gold} />
+            <MaterialCommunityIcons name="sort" size={15} color={colors.gold} />
             <Text style={styles.sortText}>Yakınlığa Göre</Text>
             {allMosques.length > 0 && (
               <View style={styles.countBadge}>
@@ -367,8 +372,8 @@ export default function MosquesScreen() {
             )}
           </View>
           <TouchableOpacity style={[styles.filterBtn, maxDist < 5000 && styles.filterBtnActive]} onPress={() => setShowFilter(true)}>
-            <MaterialCommunityIcons name="tune-vertical" size={14} color={maxDist < 5000 ? COLORS.background : COLORS.gold} />
-            <Text style={[styles.filterText, maxDist < 5000 && { color: COLORS.background }]}>
+            <MaterialCommunityIcons name="tune-vertical" size={14} color={maxDist < 5000 ? colors.background : colors.gold} />
+            <Text style={[styles.filterText, maxDist < 5000 && { color: colors.background }]}>
               {maxDist < 5000 ? `≤ ${filterLabel}` : t('mosquesFilter')}
             </Text>
           </TouchableOpacity>
@@ -376,31 +381,31 @@ export default function MosquesScreen() {
 
         {hiddenCount > 0 && (
           <TouchableOpacity style={styles.hiddenBanner} onPress={() => setShowFilter(true)}>
-            <Ionicons name="eye-off-outline" size={14} color={COLORS.gold} />
+            <Ionicons name="eye-off-outline" size={14} color={colors.gold} />
             <Text style={styles.hiddenText}>{hiddenCount} cami filtre dışında · Mesafeyi artır</Text>
           </TouchableOpacity>
         )}
 
         {loading ? (
           <View style={styles.center}>
-            <ActivityIndicator color={COLORS.gold} size="large" />
+            <ActivityIndicator color={colors.gold} size="large" />
             <Text style={styles.statusText}>Yakındaki camiler aranıyor...</Text>
           </View>
         ) : errorMsg ? (
           <View style={styles.center}>
-            <MaterialCommunityIcons name="mosque" size={40} color={COLORS.textMuted} />
+            <MaterialCommunityIcons name="mosque" size={40} color={colors.textMuted} />
             <Text style={styles.statusText}>{errorMsg}</Text>
             <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
-              <Ionicons name="refresh" size={16} color={COLORS.background} />
+              <Ionicons name="refresh" size={16} color={colors.background} />
               <Text style={styles.retryText}>Tekrar Dene</Text>
             </TouchableOpacity>
           </View>
         ) : filteredMosques.length === 0 ? (
           <View style={styles.center}>
-            <MaterialCommunityIcons name="map-search" size={40} color={COLORS.textMuted} />
+            <MaterialCommunityIcons name="map-search" size={40} color={colors.textMuted} />
             <Text style={styles.statusText}>Bu mesafede cami bulunamadı.</Text>
             <TouchableOpacity style={styles.retryBtn} onPress={() => setShowFilter(true)}>
-              <MaterialCommunityIcons name="tune-vertical" size={16} color={COLORS.background} />
+              <MaterialCommunityIcons name="tune-vertical" size={16} color={colors.background} />
               <Text style={styles.retryText}>Mesafeyi Artır</Text>
             </TouchableOpacity>
           </View>
@@ -428,8 +433,8 @@ export default function MosquesScreen() {
                     <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.cardAddress} numberOfLines={1}>{item.address}</Text>
                     <View style={styles.statusRow}>
-                      <View style={[styles.statusDot, { backgroundColor: item.openNow === false ? COLORS.red : COLORS.green }]} />
-                      <Text style={[styles.openText, { color: item.openNow === false ? COLORS.red : COLORS.green }]}>
+                      <View style={[styles.statusDot, { backgroundColor: item.openNow === false ? colors.red : colors.green }]} />
+                      <Text style={[styles.openText, { color: item.openNow === false ? colors.red : colors.green }]}>
                         {item.openNow === false ? t('mosquesClosed') : t('mosquesOpen')}
                       </Text>
                     </View>
@@ -437,30 +442,30 @@ export default function MosquesScreen() {
                     {/* Inline Git button — visible when selected */}
                     {isSelected && (
                       <TouchableOpacity style={styles.inlineGoBtn} onPress={() => openNavigation(item)}>
-                        <Ionicons name="navigate" size={14} color={COLORS.background} />
+                        <Ionicons name="navigate" size={14} color={colors.background} />
                         <Text style={styles.inlineGoBtnText}>Google Maps'te Aç</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                   <View style={styles.distCol}>
-                    <Text style={[styles.distValue, isSelected && { color: COLORS.gold }]}>
+                    <Text style={[styles.distValue, isSelected && { color: colors.gold }]}>
                       {fmtDistance(item.distance)}
                     </Text>
                     <View style={styles.walkRow}>
-                      <Ionicons name="walk" size={12} color={COLORS.textMuted} />
+                      <Ionicons name="walk" size={12} color={colors.textMuted} />
                       <Text style={styles.walkText}>{item.walkMin} dk</Text>
                     </View>
                   </View>
                   <Ionicons
                     name={isSelected ? 'chevron-up' : 'chevron-down'}
                     size={16}
-                    color={isSelected ? COLORS.gold : COLORS.textMuted}
+                    color={isSelected ? colors.gold : colors.textMuted}
                     style={{ marginLeft: 2 }}
                   />
                 </TouchableOpacity>
               );
             }}
-            ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: COLORS.cardBorder, marginHorizontal: SPACING.md }} />}
+            ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.cardBorder, marginHorizontal: SPACING.md }} />}
           />
         )}
       </View>
@@ -469,15 +474,15 @@ export default function MosquesScreen() {
       {!loading && (
         <SafeAreaView edges={['bottom']} style={styles.locBar}>
           <View style={styles.locBarInner}>
-            <Ionicons name="location" size={16} color={COLORS.gold} />
+            <Ionicons name="location" size={16} color={colors.gold} />
             <View style={{ flex: 1 }}>
               <Text style={styles.locCity}>{cityName}</Text>
               <Text style={styles.locHint}>Doğruluğu artırmak için konum izninizi açabilirsiniz.</Text>
             </View>
             <TouchableOpacity style={styles.updateBtn} onPress={loadData} disabled={fetching}>
               {fetching
-                ? <ActivityIndicator size="small" color={COLORS.background} />
-                : <><Text style={styles.updateText}>Konumu Güncelle</Text><Ionicons name="refresh" size={13} color={COLORS.background} /></>}
+                ? <ActivityIndicator size="small" color={colors.background} />
+                : <><Text style={styles.updateText}>Konumu Güncelle</Text><Ionicons name="refresh" size={13} color={colors.background} /></>}
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -487,93 +492,93 @@ export default function MosquesScreen() {
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   map: { width: '100%', height: height * 0.42 },
 
   // Header
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: 'rgba(11,15,26,0.88)', borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: 'rgba(11,15,26,0.88)', borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  headerSub: { color: COLORS.textMuted, fontSize: 11, marginTop: 1 },
+  headerTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  headerSub: { color: colors.textMuted, fontSize: 11, marginTop: 1 },
   locateBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(200,168,83,0.15)', borderWidth: 1, borderColor: 'rgba(200,168,83,0.35)', alignItems: 'center', justifyContent: 'center' },
-  recenterBtn: { position: 'absolute', top: height * 0.42 - 48, right: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  recenterBtn: { position: 'absolute', top: height * 0.42 - 48, right: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardBg, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
 
   // Marker
-  marker: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(11,15,26,0.92)', borderWidth: 2, borderColor: COLORS.gold, alignItems: 'center', justifyContent: 'center' },
-  markerActive: { backgroundColor: COLORS.gold, borderColor: '#fff', transform: [{ scale: 1.2 }] },
+  marker: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(11,15,26,0.92)', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  markerActive: { backgroundColor: colors.gold, borderColor: '#fff', transform: [{ scale: 1.2 }] },
 
   // Panel
-  panel: { flex: 1, backgroundColor: COLORS.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, zIndex: 20 },
+  panel: { flex: 1, backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, zIndex: 20 },
 
   // Sort + Filter row
   sortRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   sortLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  sortText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
+  sortText: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
   countBadge: { backgroundColor: 'rgba(200,168,83,0.15)', borderRadius: RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: 2 },
-  countText: { color: COLORS.gold, fontSize: 11, fontWeight: '600' },
-  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.cardBorder, paddingHorizontal: SPACING.sm + 2, paddingVertical: 6 },
-  filterBtnActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  filterText: { color: COLORS.gold, fontSize: FONT_SIZE.xs, fontWeight: '600' },
+  countText: { color: colors.gold, fontSize: 11, fontWeight: '600' },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.cardBg, borderRadius: RADIUS.full, borderWidth: 1, borderColor: colors.cardBorder, paddingHorizontal: SPACING.sm + 2, paddingVertical: 6 },
+  filterBtnActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  filterText: { color: colors.gold, fontSize: FONT_SIZE.xs, fontWeight: '600' },
 
   // Hidden banner
   hiddenBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, marginHorizontal: SPACING.md, marginBottom: SPACING.sm, backgroundColor: 'rgba(200,168,83,0.08)', borderRadius: RADIUS.md, paddingHorizontal: SPACING.sm + 2, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(200,168,83,0.2)' },
-  hiddenText: { color: COLORS.gold, fontSize: 11 },
+  hiddenText: { color: colors.gold, fontSize: 11 },
 
   // States
   center: { alignItems: 'center', paddingVertical: SPACING.xl, gap: SPACING.sm, paddingHorizontal: SPACING.lg },
-  statusText: { color: COLORS.textMuted, fontSize: FONT_SIZE.sm, textAlign: 'center' },
-  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
-  retryText: { color: COLORS.background, fontSize: FONT_SIZE.sm, fontWeight: '700' },
+  statusText: { color: colors.textMuted, fontSize: FONT_SIZE.sm, textAlign: 'center' },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
+  retryText: { color: colors.background, fontSize: FONT_SIZE.sm, fontWeight: '700' },
 
   // List
   list: { flex: 1 },
   card: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2 },
   cardActive: { backgroundColor: 'rgba(200,168,83,0.06)' },
-  thumb: { width: 62, height: 62, borderRadius: RADIUS.md, backgroundColor: COLORS.cardBg, marginTop: 2 },
+  thumb: { width: 62, height: 62, borderRadius: RADIUS.md, backgroundColor: colors.cardBg, marginTop: 2 },
   cardInfo: { flex: 1, marginLeft: SPACING.md },
-  cardName: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
-  cardAddress: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, marginTop: 2 },
+  cardName: { color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
+  cardAddress: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, marginTop: 2 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   statusDot: { width: 7, height: 7, borderRadius: 3.5 },
   openText: { fontSize: FONT_SIZE.xs, fontWeight: '600' },
 
   // Inline Go button
-  inlineGoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs + 2, marginTop: SPACING.sm, alignSelf: 'flex-start' },
-  inlineGoBtnText: { color: COLORS.background, fontSize: FONT_SIZE.xs, fontWeight: '700' },
+  inlineGoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs + 2, marginTop: SPACING.sm, alignSelf: 'flex-start' },
+  inlineGoBtnText: { color: colors.background, fontSize: FONT_SIZE.xs, fontWeight: '700' },
 
   distCol: { alignItems: 'flex-end', gap: 3, marginTop: 2 },
-  distValue: { color: COLORS.green, fontSize: FONT_SIZE.md, fontWeight: '700' },
+  distValue: { color: colors.green, fontSize: FONT_SIZE.md, fontWeight: '700' },
   walkRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  walkText: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  walkText: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
 
   // Location bar
   locBar: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-  locBarInner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.cardBg, borderTopWidth: 1, borderTopColor: COLORS.cardBorder, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2 },
-  locCity: { color: COLORS.gold, fontSize: FONT_SIZE.xs, fontWeight: '600' },
-  locHint: { color: COLORS.textMuted, fontSize: 10, marginTop: 1 },
-  updateBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.sm + 4, paddingVertical: SPACING.sm },
-  updateText: { color: COLORS.background, fontSize: 11, fontWeight: '700' },
+  locBarInner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: colors.cardBg, borderTopWidth: 1, borderTopColor: colors.cardBorder, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2 },
+  locCity: { color: colors.gold, fontSize: FONT_SIZE.xs, fontWeight: '600' },
+  locHint: { color: colors.textMuted, fontSize: 10, marginTop: 1 },
+  updateBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.gold, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.sm + 4, paddingVertical: SPACING.sm },
+  updateText: { color: colors.background, fontSize: 11, fontWeight: '700' },
 
   // Filter Modal
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  filterSheet: { backgroundColor: COLORS.cardBg, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, borderTopWidth: 1, borderColor: COLORS.cardBorder, padding: SPACING.lg, paddingBottom: 40 },
-  sheetHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: COLORS.cardBorder, alignSelf: 'center', marginBottom: SPACING.md },
-  sheetTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', marginBottom: 4 },
-  sheetHint: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginBottom: SPACING.lg },
+  filterSheet: { backgroundColor: colors.cardBg, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, borderTopWidth: 1, borderColor: colors.cardBorder, padding: SPACING.lg, paddingBottom: 40 },
+  sheetHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: colors.cardBorder, alignSelf: 'center', marginBottom: SPACING.md },
+  sheetTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', marginBottom: 4 },
+  sheetHint: { color: colors.textMuted, fontSize: FONT_SIZE.xs, marginBottom: SPACING.lg },
   presetsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.md },
-  presetBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.full, backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.cardBorder },
-  presetBtnActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  presetText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '600' },
-  presetTextActive: { color: COLORS.background },
+  presetBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.full, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.cardBorder },
+  presetBtnActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  presetText: { color: colors.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '600' },
+  presetTextActive: { color: colors.background },
   customRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md },
-  customLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm },
-  customInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.background, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.cardBorder, paddingHorizontal: SPACING.sm, gap: SPACING.xs },
-  customInput: { flex: 1, color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600', paddingVertical: SPACING.sm },
-  customUnit: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  customLabel: { color: colors.textSecondary, fontSize: FONT_SIZE.sm },
+  customInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, borderRadius: RADIUS.md, borderWidth: 1, borderColor: colors.cardBorder, paddingHorizontal: SPACING.sm, gap: SPACING.xs },
+  customInput: { flex: 1, color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600', paddingVertical: SPACING.sm },
+  customUnit: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
   summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, backgroundColor: 'rgba(200,168,83,0.08)', borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.md },
-  summaryText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, flex: 1, lineHeight: 18 },
-  applyBtn: { backgroundColor: COLORS.gold, borderRadius: RADIUS.lg, paddingVertical: SPACING.sm + 4, alignItems: 'center' },
-  applyBtnText: { color: COLORS.background, fontSize: FONT_SIZE.md, fontWeight: '700' },
+  summaryText: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, flex: 1, lineHeight: 18 },
+  applyBtn: { backgroundColor: colors.gold, borderRadius: RADIUS.lg, paddingVertical: SPACING.sm + 4, alignItems: 'center' },
+  applyBtnText: { color: colors.background, fontSize: FONT_SIZE.md, fontWeight: '700' },
 });

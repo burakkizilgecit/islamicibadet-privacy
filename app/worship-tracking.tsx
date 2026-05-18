@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from '../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { usePrayerStore } from '../store/usePrayerStore';
 import { useDhikrStore } from '../store/useDhikrStore';
 import { useGoalsStore } from '../store/useGoalsStore';
@@ -17,6 +18,8 @@ const PRAYER_ICON: Record<string, string> = { fajr: 'weather-night', dhuhr: 'wea
 
 export default function WorshipTrackingScreen() {
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const { completion, togglePrayer } = usePrayerStore();
@@ -45,10 +48,10 @@ export default function WorshipTrackingScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('worshipTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -66,9 +69,9 @@ export default function WorshipTrackingScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: SPACING.md }}>
         {/* Date */}
         <View style={styles.dateRow}>
-          <Ionicons name="chevron-back" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-back" size={20} color={colors.gold} />
           <Text style={styles.dateText}>{now.getDate()} {GREGORIAN_MONTHS_TR[now.getMonth()]} {now.getFullYear()}</Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.gold} />
+          <Ionicons name="chevron-forward" size={20} color={colors.gold} />
         </View>
 
         {/* Progress Summary */}
@@ -99,9 +102,9 @@ export default function WorshipTrackingScreen() {
             const done = todayComp[key];
             return (
               <TouchableOpacity key={key} style={[styles.prayerCell, done && styles.prayerCellDone]} onPress={() => togglePrayer(todayKey, key)}>
-                <MaterialCommunityIcons name={PRAYER_ICON[key] as any} size={20} color={done ? COLORS.background : COLORS.gold} />
-                <Text style={[styles.prayerCellLabel, done && { color: COLORS.background }]}>{t(PRAYER_LABEL_KEYS[key] as any)}</Text>
-                {done && <Ionicons name="checkmark-circle" size={14} color={COLORS.background} />}
+                <MaterialCommunityIcons name={PRAYER_ICON[key] as any} size={20} color={done ? colors.background : colors.gold} />
+                <Text style={[styles.prayerCellLabel, done && { color: colors.background }]}>{t(PRAYER_LABEL_KEYS[key] as any)}</Text>
+                {done && <Ionicons name="checkmark-circle" size={14} color={colors.background} />}
               </TouchableOpacity>
             );
           })}
@@ -114,7 +117,7 @@ export default function WorshipTrackingScreen() {
             const progress = Math.min(goal.progress / goal.target, 1);
             return (
               <View key={goal.id} style={[styles.goalRow, i < goals.length - 1 && styles.goalRowBorder]}>
-                <MaterialCommunityIcons name={goal.icon as any} size={20} color={COLORS.gold} />
+                <MaterialCommunityIcons name={goal.icon as any} size={20} color={colors.gold} />
                 <View style={styles.goalInfo}>
                   <View style={styles.goalTitleRow}>
                     <Text style={styles.goalTitle}>{goal.title}</Text>
@@ -138,11 +141,11 @@ export default function WorshipTrackingScreen() {
               const pct = d.count / 5;
               return (
                 <View key={i} style={styles.weekCol}>
-                  <Text style={[styles.weekDay, isToday && { color: COLORS.gold }]}>{DAYS_SHORT_TR[d.date.getDay()]}</Text>
-                  <View style={[styles.weekBar, isToday && { borderColor: COLORS.gold, borderWidth: 1 }]}>
-                    <View style={[styles.weekFill, { height: `${pct * 100}%`, backgroundColor: pct === 1 ? COLORS.green : COLORS.gold }]} />
+                  <Text style={[styles.weekDay, isToday && { color: colors.gold }]}>{DAYS_SHORT_TR[d.date.getDay()]}</Text>
+                  <View style={[styles.weekBar, isToday && { borderColor: colors.gold, borderWidth: 1 }]}>
+                    <View style={[styles.weekFill, { height: `${pct * 100}%`, backgroundColor: pct === 1 ? colors.green : colors.gold }]} />
                   </View>
-                  <Text style={[styles.weekCount, isToday && { color: COLORS.gold }]}>{d.count}</Text>
+                  <Text style={[styles.weekCount, isToday && { color: colors.gold }]}>{d.count}</Text>
                 </View>
               );
             })}
@@ -153,47 +156,47 @@ export default function WorshipTrackingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  tabs: { flexDirection: 'row', marginHorizontal: SPACING.md, backgroundColor: COLORS.cardBg, borderRadius: RADIUS.full, padding: 3, borderColor: COLORS.cardBorder, borderWidth: 1, marginBottom: SPACING.sm },
+  headerTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  tabs: { flexDirection: 'row', marginHorizontal: SPACING.md, backgroundColor: colors.cardBg, borderRadius: RADIUS.full, padding: 3, borderColor: colors.cardBorder, borderWidth: 1, marginBottom: SPACING.sm },
   tab: { flex: 1, paddingVertical: SPACING.xs + 2, alignItems: 'center', borderRadius: RADIUS.full },
-  tabActive: { backgroundColor: COLORS.gold },
-  tabLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
-  tabLabelActive: { color: COLORS.background, fontWeight: '700' },
+  tabActive: { backgroundColor: colors.gold },
+  tabLabel: { color: colors.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
+  tabLabelActive: { color: colors.background, fontWeight: '700' },
   dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.md, marginBottom: SPACING.md },
-  dateText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600' },
-  summaryCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, gap: SPACING.md },
-  progressCircleWrap: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center', borderRadius: 50, borderWidth: 8, borderColor: COLORS.gold },
+  dateText: { color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600' },
+  summaryCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, gap: SPACING.md },
+  progressCircleWrap: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center', borderRadius: 50, borderWidth: 8, borderColor: colors.gold },
   progressInfo: { alignItems: 'center' },
-  progressPercent: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  progressLabel: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  progressPercent: { color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  progressLabel: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
   summaryStats: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   statItem: { alignItems: 'center' },
-  statValue: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  statLabel: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
-  statDivider: { width: 1, height: 40, backgroundColor: COLORS.cardBorder },
-  sectionTitle: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: SPACING.sm, marginTop: SPACING.md },
+  statValue: { color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  statLabel: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
+  statDivider: { width: 1, height: 40, backgroundColor: colors.cardBorder },
+  sectionTitle: { color: colors.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: SPACING.sm, marginTop: SPACING.md },
   prayerGrid: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
-  prayerCell: { flex: 1, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.md, padding: SPACING.sm, alignItems: 'center', gap: 4 },
-  prayerCellDone: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  prayerCellLabel: { color: COLORS.textSecondary, fontSize: 10, fontWeight: '500' },
-  card: { backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, overflow: 'hidden' },
+  prayerCell: { flex: 1, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.md, padding: SPACING.sm, alignItems: 'center', gap: 4 },
+  prayerCellDone: { backgroundColor: colors.gold, borderColor: colors.gold },
+  prayerCellLabel: { color: colors.textSecondary, fontSize: 10, fontWeight: '500' },
+  card: { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, overflow: 'hidden' },
   goalRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2, gap: SPACING.sm },
-  goalRowBorder: { borderBottomColor: COLORS.cardBorder, borderBottomWidth: 1 },
+  goalRowBorder: { borderBottomColor: colors.cardBorder, borderBottomWidth: 1 },
   goalInfo: { flex: 1 },
   goalTitleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  goalTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
-  goalProgress: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
-  progressBar: { height: 6, backgroundColor: COLORS.cardBorder, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.gold, borderRadius: 3 },
-  weekCard: { backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.xl },
+  goalTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
+  goalProgress: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
+  progressBar: { height: 6, backgroundColor: colors.cardBorder, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.gold, borderRadius: 3 },
+  weekCard: { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.xl },
   weekRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end', height: 90 },
   weekCol: { alignItems: 'center', gap: 4, flex: 1 },
-  weekDay: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
-  weekBar: { width: 24, height: 60, backgroundColor: COLORS.cardBorder, borderRadius: 4, justifyContent: 'flex-end', overflow: 'hidden' },
+  weekDay: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
+  weekBar: { width: 24, height: 60, backgroundColor: colors.cardBorder, borderRadius: 4, justifyContent: 'flex-end', overflow: 'hidden' },
   weekFill: { width: '100%', borderRadius: 4 },
-  weekCount: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  weekCount: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
 });

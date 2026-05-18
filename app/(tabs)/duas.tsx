@@ -7,9 +7,42 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { DUAS, DUA_CATEGORIES, type Dua } from '../../data/duas';
 import { useTranslation } from '../../i18n';
+
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerTitle: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.xl), fontWeight: '700' },
+  headerSub: { color: colors.textMuted, fontSize: fs(FONT_SIZE.sm) },
+  categories: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.sm, gap: SPACING.sm },
+  catBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs + 2, borderRadius: RADIUS.full, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1 },
+  catBtnActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  catLabel: { color: colors.textSecondary, fontSize: fs(FONT_SIZE.sm), fontWeight: '500' },
+  catLabelActive: { color: colors.background, fontWeight: '700' },
+  duaCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md },
+  duaCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  duaIconBox: { width: 44, height: 44, borderRadius: RADIUS.sm, backgroundColor: 'rgba(200,168,83,0.12)', alignItems: 'center', justifyContent: 'center', marginRight: SPACING.md },
+  duaInfo: { flex: 1 },
+  duaTitle: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.md), fontWeight: '600' },
+  duaSource: { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs), marginTop: 2 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: colors.cardBg, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.lg },
+  modalTitle: { color: colors.gold, fontSize: fs(FONT_SIZE.lg), fontWeight: '700', flex: 1 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  playBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 18 },
+  playBtnActive: { backgroundColor: colors.gold, opacity: 0.8 },
+  closeBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, borderRadius: 18 },
+  arabicBox: { backgroundColor: colors.background, borderRadius: RADIUS.md, padding: SPACING.md, marginBottom: SPACING.md },
+  arabicText: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), lineHeight: 34, textAlign: 'right' },
+  divider: { height: 1, backgroundColor: colors.cardBorder, marginBottom: SPACING.md },
+  turkishText: { color: colors.textSecondary, fontSize: fs(FONT_SIZE.md), lineHeight: 24, marginBottom: SPACING.md },
+  sourceBox: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.xl },
+  sourceText: { color: colors.gold, fontSize: fs(FONT_SIZE.sm) },
+});
 
 export default function DuasScreen() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -18,6 +51,8 @@ export default function DuasScreen() {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const isPlayingRef = useRef(false);
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
 
   const filtered = activeCategory === 'all' ? DUAS : DUAS.filter(d => d.category === activeCategory);
 
@@ -62,7 +97,7 @@ export default function DuasScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('duasTitle')}</Text>
@@ -93,14 +128,14 @@ export default function DuasScreen() {
           <TouchableOpacity style={styles.duaCard} onPress={() => setSelectedDua(item)}>
             <View style={styles.duaCardLeft}>
               <View style={styles.duaIconBox}>
-                <MaterialCommunityIcons name="hands-pray" size={22} color={COLORS.gold} />
+                <MaterialCommunityIcons name="hands-pray" size={22} color={colors.gold} />
               </View>
               <View style={styles.duaInfo}>
                 <Text style={styles.duaTitle}>{item.title}</Text>
                 <Text style={styles.duaSource}>{item.source}</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={{ height: SPACING.sm }} />}
@@ -120,7 +155,7 @@ export default function DuasScreen() {
                   <Ionicons
                     name={isPlaying ? 'pause' : 'play'}
                     size={18}
-                    color={isPlaying ? COLORS.background : COLORS.gold}
+                    color={isPlaying ? colors.background : colors.gold}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -132,7 +167,7 @@ export default function DuasScreen() {
                   }}
                   style={styles.closeBtn}
                 >
-                  <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+                  <Ionicons name="close" size={22} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -143,7 +178,7 @@ export default function DuasScreen() {
               <View style={styles.divider} />
               <Text style={styles.turkishText}>{selectedDua?.turkish}</Text>
               <View style={styles.sourceBox}>
-                <MaterialCommunityIcons name="book-open-variant" size={16} color={COLORS.gold} />
+                <MaterialCommunityIcons name="book-open-variant" size={16} color={colors.gold} />
                 <Text style={styles.sourceText}>{selectedDua?.source}</Text>
               </View>
             </ScrollView>
@@ -154,34 +189,3 @@ export default function DuasScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  headerSub: { color: COLORS.textMuted, fontSize: FONT_SIZE.sm },
-  categories: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.sm, gap: SPACING.sm },
-  catBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs + 2, borderRadius: RADIUS.full, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1 },
-  catBtnActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  catLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
-  catLabelActive: { color: COLORS.background, fontWeight: '700' },
-  duaCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md },
-  duaCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  duaIconBox: { width: 44, height: 44, borderRadius: RADIUS.sm, backgroundColor: 'rgba(200,168,83,0.12)', alignItems: 'center', justifyContent: 'center', marginRight: SPACING.md },
-  duaInfo: { flex: 1 },
-  duaTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '600' },
-  duaSource: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: 2 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: COLORS.cardBg, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, maxHeight: '85%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.lg },
-  modalTitle: { color: COLORS.gold, fontSize: FONT_SIZE.lg, fontWeight: '700', flex: 1 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  playBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.gold, borderRadius: 18 },
-  playBtnActive: { backgroundColor: COLORS.gold, opacity: 0.8 },
-  closeBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background, borderRadius: 18 },
-  arabicBox: { backgroundColor: COLORS.background, borderRadius: RADIUS.md, padding: SPACING.md, marginBottom: SPACING.md },
-  arabicText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, lineHeight: 34, textAlign: 'right' },
-  divider: { height: 1, backgroundColor: COLORS.cardBorder, marginBottom: SPACING.md },
-  turkishText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.md, lineHeight: 24, marginBottom: SPACING.md },
-  sourceBox: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.xl },
-  sourceText: { color: COLORS.gold, fontSize: FONT_SIZE.sm },
-});

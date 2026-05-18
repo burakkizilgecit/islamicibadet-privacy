@@ -11,7 +11,8 @@ import ShareCard from '../../components/ShareCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { usePrayerStore } from '../../store/usePrayerStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
@@ -55,7 +56,89 @@ const PRAYER_LABEL_KEYS: Record<string, string> = {
   asr: 'prayerAsr', maghrib: 'prayerMaghrib', isha: 'prayerIsha',
 };
 
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  hero: { width, minHeight: 340 },
+  heroOverlay: { flex: 1, minHeight: 340, backgroundColor: 'rgba(5,8,18,0.62)', paddingBottom: SPACING.md },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2 },
+  headerBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  cityText: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700', letterSpacing: 0.3 },
+  dateContainer: { alignItems: 'center', paddingTop: SPACING.sm, paddingBottom: SPACING.lg },
+  dayText:   { color: 'rgba(255,255,255,0.55)', fontSize: fs(FONT_SIZE.xs), letterSpacing: 2, textTransform: 'uppercase' },
+  dateText:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.xxl), fontWeight: '700', marginVertical: 3, letterSpacing: 0.3 },
+  hijriText: { color: colors.gold, fontSize: fs(FONT_SIZE.sm), letterSpacing: 0.5, opacity: 0.9 },
+  nextPrayerCard: { marginHorizontal: SPACING.md, backgroundColor: 'rgba(8,12,22,0.82)', borderColor: 'rgba(212,168,75,0.35)', borderWidth: 1, borderRadius: RADIUS.xl, padding: SPACING.md, paddingHorizontal: SPACING.lg, overflow: 'hidden' },
+  nextPrayerLabel: { color: colors.textMuted, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+  nextPrayerName:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700', marginBottom: SPACING.sm },
+  nextPrayerLeft:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  nextPrayerIconBox: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(212,168,75,0.15)', alignItems: 'center', justifyContent: 'center' },
+  countdownBox:  { alignItems: 'flex-end', marginTop: 4 },
+  countdownText: { color: colors.gold, fontSize: fs(FONT_SIZE.xxxl), fontWeight: '800', letterSpacing: 4, fontVariant: ['tabular-nums'], includeFontPadding: false },
+  countdownLabel: { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs), letterSpacing: 1, marginTop: 2 },
+  section:      { paddingHorizontal: SPACING.md, marginTop: SPACING.lg },
+  sectionTitle: { color: colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: SPACING.sm },
+  card: { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.xl, overflow: 'hidden' },
+  prayerRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: 14 },
+  prayerRowBorder: { borderBottomColor: colors.cardBorder, borderBottomWidth: 1 },
+  prayerRowActive: { backgroundColor: colors.goldGlow },
+  prayerLeft:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm + 2 },
+  prayerName:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.md), fontWeight: '500' },
+  prayerRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  prayerTime:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.md), fontWeight: '700', fontVariant: ['tabular-nums'] },
+  infoCard: { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.xl, padding: SPACING.lg, borderLeftColor: colors.gold, borderLeftWidth: 3 },
+  infoCardHeader:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md },
+  infoCardTitle:   { color: colors.gold, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, flex: 1 },
+  infoCardTitle2:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.md), fontWeight: '700', marginBottom: SPACING.sm },
+  infoCardText:    { color: colors.textSecondary, fontSize: fs(FONT_SIZE.sm), lineHeight: 22 },
+  arabicText:      { color: colors.textPrimary, fontSize: fs(FONT_SIZE.xl), lineHeight: 38, textAlign: 'right', marginVertical: SPACING.sm, fontWeight: '300' },
+  infoCardSource:  { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs), marginTop: SPACING.sm, letterSpacing: 0.3 },
+  shareBtn:        { padding: 6, marginLeft: 'auto' as any },
+  headerBtnGroup: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  badge:          { position: 'absolute', top: 6, right: 6, minWidth: 15, height: 15, borderRadius: 8, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  badgeText:      { color: '#fff', fontSize: 9, fontWeight: '800' },
+  notifSettingsSheet:  { marginHorizontal: SPACING.md, marginBottom: SPACING.xl, backgroundColor: colors.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: colors.cardBorderActive, padding: SPACING.lg, paddingBottom: SPACING.xl },
+  sheetHandle:         { width: 36, height: 4, borderRadius: 2, backgroundColor: colors.cardBorder, alignSelf: 'center', marginBottom: SPACING.md },
+  notifSettingsHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md, paddingBottom: SPACING.sm, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  notifSettingsTitle:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700' },
+  notifSettingRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm + 2 },
+  notifSettingBorder:  { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  notifSettingIcon:    { marginRight: SPACING.sm },
+  notifSettingLabel:   { flex: 1, color: colors.textPrimary, fontSize: fs(FONT_SIZE.sm), fontWeight: '500' },
+  notifLangRow:        { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, marginBottom: SPACING.xs },
+  notifLangTitle:      { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs), flex: 1 },
+  notifLangBtn:        { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.full, borderWidth: 1, borderColor: colors.cardBorder },
+  notifLangBtnActive:  { borderColor: colors.gold, backgroundColor: 'rgba(200,168,83,0.15)' },
+  notifLangBtnText:    { color: colors.textMuted, fontSize: 11, fontWeight: '600' },
+  notifLangBtnTextActive: { color: colors.gold },
+  modalBackdrop:  { flex: 1, backgroundColor: colors.overlay },
+  notifPanel:     { margin: SPACING.md, marginTop: 90, backgroundColor: colors.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: colors.cardBorderActive, overflow: 'hidden' },
+  notifPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  notifPanelTitle: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700' },
+  markAllBtn:     { paddingHorizontal: SPACING.sm, paddingVertical: 5, backgroundColor: colors.goldGlow, borderRadius: RADIUS.full },
+  markAllText:    { color: colors.gold, fontSize: fs(FONT_SIZE.xs), fontWeight: '700' },
+  notifEmpty:     { alignItems: 'center', padding: SPACING.xl, gap: SPACING.sm },
+  notifEmptyText: { color: colors.textMuted, fontSize: fs(FONT_SIZE.sm) },
+  notifItem:      { flexDirection: 'row', alignItems: 'flex-start', padding: SPACING.md, gap: SPACING.sm, backgroundColor: 'rgba(212,168,75,0.04)' },
+  notifItemRead:  { backgroundColor: 'transparent' },
+  notifIconBox:   { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.goldGlow, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  notifContent:   { flex: 1 },
+  notifTitle:     { color: colors.textPrimary, fontSize: fs(FONT_SIZE.sm), fontWeight: '700', marginBottom: 2 },
+  notifBody:      { color: colors.textSecondary, fontSize: fs(FONT_SIZE.xs), lineHeight: 17 },
+  notifTime:      { color: colors.textMuted, fontSize: 10, marginTop: 4 },
+  unreadDot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.gold, marginTop: 5, flexShrink: 0 },
+  shareModalBg:      { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center', padding: SPACING.md },
+  shareModalContent: { width: '100%', alignItems: 'center', gap: SPACING.md },
+  shareModalTitle:   { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700' },
+  shareModalBtns:    { flexDirection: 'row', gap: SPACING.sm, width: '100%' },
+  shareCancelBtn:    { flex: 1, paddingVertical: SPACING.sm + 4, borderRadius: RADIUS.lg, backgroundColor: colors.surface, alignItems: 'center', borderWidth: 1, borderColor: colors.cardBorderActive },
+  shareCancelText:   { color: colors.textSecondary, fontSize: fs(FONT_SIZE.sm), fontWeight: '600' },
+  shareConfirmBtn:   { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: SPACING.sm + 4, borderRadius: RADIUS.lg, backgroundColor: colors.gold },
+  shareConfirmText:  { color: colors.background, fontSize: fs(FONT_SIZE.md), fontWeight: '800' },
+});
+
 export default function HomeScreen() {
+  const { colors, fs } = useTheme();
   const { prayerTimes, location, setLocation, loadCompletion, togglePrayer, getTodayCompletion } = usePrayerStore();
   const { notifications, loadNotifications, markRead, markAllRead, getUnreadCount, generateDailyIfNeeded } = useNotificationStore();
   const [countdown, setCountdown] = useState('--:--:--');
@@ -66,6 +149,8 @@ export default function HomeScreen() {
   const [shareData, setShareData] = useState<any>(null);
   const { settings, toggleNotification, updateSettings } = useSettingsStore();
   const { t, language } = useTranslation();
+
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
 
   const handleLangChange = (lang: Language) => {
     updateSettings({ language: lang });
@@ -163,7 +248,7 @@ export default function HomeScreen() {
             </View>
             {notifications.length === 0 ? (
               <View style={styles.notifEmpty}>
-                <Ionicons name="notifications-off-outline" size={40} color={COLORS.textMuted} />
+                <Ionicons name="notifications-off-outline" size={40} color={colors.textMuted} />
                 <Text style={styles.notifEmptyText}>Henüz bildirim yok</Text>
               </View>
             ) : (
@@ -178,17 +263,17 @@ export default function HomeScreen() {
                     onPress={() => markRead(item.id)}
                   >
                     <View style={[styles.notifIconBox, item.read && { opacity: 0.5 }]}>
-                      <MaterialCommunityIcons name={NOTIF_ICONS[item.type] as any} size={20} color={COLORS.gold} />
+                      <MaterialCommunityIcons name={NOTIF_ICONS[item.type] as any} size={20} color={colors.gold} />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={[styles.notifTitle, item.read && { color: COLORS.textMuted }]}>{item.title}</Text>
+                      <Text style={[styles.notifTitle, item.read && { color: colors.textMuted }]}>{item.title}</Text>
                       <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text>
                       <Text style={styles.notifTime}>{timeAgo(item.timestamp)}</Text>
                     </View>
                     {!item.read && <View style={styles.unreadDot} />}
                   </TouchableOpacity>
                 )}
-                ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: COLORS.cardBorder }} />}
+                ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: colors.cardBorder }} />}
               />
             )}
           </View>
@@ -201,13 +286,13 @@ export default function HomeScreen() {
           <View style={styles.notifSettingsSheet} onStartShouldSetResponder={() => true}>
             <View style={styles.sheetHandle} />
             <View style={styles.notifSettingsHeader}>
-              <Ionicons name="notifications-outline" size={20} color={COLORS.gold} />
+              <Ionicons name="notifications-outline" size={20} color={colors.gold} />
               <Text style={styles.notifSettingsTitle}>{t('settingsNotifications')}</Text>
             </View>
 
             {/* Language quick-switcher */}
             <View style={styles.notifLangRow}>
-              <Ionicons name="language-outline" size={16} color={COLORS.textMuted} />
+              <Ionicons name="language-outline" size={16} color={colors.textMuted} />
               <Text style={styles.notifLangTitle}>{t('settingsLanguage')}:</Text>
               {(['tr', 'en', 'ar'] as Language[]).map((lang) => {
                 const active = (settings.language ?? 'tr') === lang;
@@ -232,13 +317,13 @@ export default function HomeScreen() {
               { key: 'dhikrReminder', labelKey: 'notifDhikr',         icon: 'circle-outline' },
             ] as const).map((item, i, arr) => (
               <View key={item.key} style={[styles.notifSettingRow, i < arr.length - 1 && styles.notifSettingBorder]}>
-                <MaterialCommunityIcons name={item.icon as any} size={18} color={COLORS.gold} style={styles.notifSettingIcon} />
+                <MaterialCommunityIcons name={item.icon as any} size={18} color={colors.gold} style={styles.notifSettingIcon} />
                 <Text style={styles.notifSettingLabel}>{t(item.labelKey as any)}</Text>
                 <Switch
                   value={settings.notifications[item.key]}
                   onValueChange={() => toggleNotification(item.key)}
-                  trackColor={{ false: COLORS.cardBorder, true: COLORS.gold + '66' }}
-                  thumbColor={settings.notifications[item.key] ? COLORS.gold : COLORS.textMuted}
+                  trackColor={{ false: colors.cardBorder, true: colors.gold + '66' }}
+                  thumbColor={settings.notifications[item.key] ? colors.gold : colors.textMuted}
                 />
               </View>
             ))}
@@ -255,16 +340,16 @@ export default function HomeScreen() {
               <View style={styles.header}>
                 <View style={styles.headerBtn} />
                 <View style={styles.locationRow}>
-                  <Ionicons name="location" size={14} color={COLORS.gold} />
+                  <Ionicons name="location" size={14} color={colors.gold} />
                   <Text style={styles.cityText}>{location?.city ?? '...'}</Text>
-                  <Ionicons name="chevron-down" size={14} color={COLORS.gold} />
+                  <Ionicons name="chevron-down" size={14} color={colors.gold} />
                 </View>
                 <View style={styles.headerBtnGroup}>
                   <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifSettings(true)}>
-                    <Ionicons name="settings-outline" size={22} color={COLORS.textPrimary} />
+                    <Ionicons name="settings-outline" size={22} color={colors.textPrimary} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifs(true)}>
-                    <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
+                    <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
                     {unreadCount > 0 && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -284,14 +369,14 @@ export default function HomeScreen() {
               {/* Next Prayer Card — countdown is the hero */}
               <View style={styles.nextPrayerCard}>
                 {loading ? (
-                  <ActivityIndicator color={COLORS.gold} size="large" />
+                  <ActivityIndicator color={colors.gold} size="large" />
                 ) : (
                   <>
                     <View style={styles.nextPrayerLeft}>
                       <View style={styles.nextPrayerIconBox}>
                         <MaterialCommunityIcons
                           name={isNight ? 'moon-waning-crescent' : 'weather-sunny'}
-                          size={20} color={COLORS.gold}
+                          size={20} color={colors.gold}
                         />
                       </View>
                       <View>
@@ -329,14 +414,14 @@ export default function HomeScreen() {
                     <MaterialCommunityIcons
                       name={PRAYER_ICONS[key] as any}
                       size={20}
-                      color={isNext ? COLORS.gold : isPast ? COLORS.textMuted : COLORS.textSecondary}
+                      color={isNext ? colors.gold : isPast ? colors.textMuted : colors.textSecondary}
                     />
-                    <Text style={[styles.prayerName, isNext && { color: COLORS.gold }, isPast && !isNext && { color: COLORS.textMuted }]}>
+                    <Text style={[styles.prayerName, isNext && { color: colors.gold }, isPast && !isNext && { color: colors.textMuted }]}>
                       {t(PRAYER_LABEL_KEYS[key] as any)}
                     </Text>
                   </View>
                   <View style={styles.prayerRight}>
-                    <Text style={[styles.prayerTime, isNext && { color: COLORS.gold }, isPast && !isNext && { color: COLORS.textMuted }]}>
+                    <Text style={[styles.prayerTime, isNext && { color: colors.gold }, isPast && !isNext && { color: colors.textMuted }]}>
                       {time ? formatPrayerTime(time) : '--:--'}
                     </Text>
                     {isToggleable ? (
@@ -344,11 +429,11 @@ export default function HomeScreen() {
                         <Ionicons
                           name={isDone ? 'checkmark-circle' : 'ellipse-outline'}
                           size={22}
-                          color={isDone ? COLORS.green : COLORS.textMuted}
+                          color={isDone ? colors.green : colors.textMuted}
                         />
                       </TouchableOpacity>
                     ) : (
-                      <Ionicons name="notifications-outline" size={18} color={COLORS.textMuted} style={{ marginLeft: SPACING.sm }} />
+                      <Ionicons name="notifications-outline" size={18} color={colors.textMuted} style={{ marginLeft: SPACING.sm }} />
                     )}
                   </View>
                 </View>
@@ -361,13 +446,13 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.infoCard}>
             <View style={styles.infoCardHeader}>
-              <MaterialIcons name="format-quote" size={20} color={COLORS.gold} />
+              <MaterialIcons name="format-quote" size={20} color={colors.gold} />
               <Text style={styles.infoCardTitle}>{language === 'ar' ? 'حديث اليوم' : language === 'en' ? 'Daily Hadith' : 'Günün Hadisi'}</Text>
               <TouchableOpacity
                 style={styles.shareBtn}
                 onPress={() => setShareData({ type: 'hadith', text: hadithText, source: hadith.source })}
               >
-                <Ionicons name="share-social-outline" size={16} color={COLORS.textMuted} />
+                <Ionicons name="share-social-outline" size={16} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
             <Text style={[styles.infoCardText, language === 'ar' && { textAlign: 'right' }]}>"{hadithText}"</Text>
@@ -379,13 +464,13 @@ export default function HomeScreen() {
         <View style={[styles.section, { marginBottom: SPACING.xl }]}>
           <View style={styles.infoCard}>
             <View style={styles.infoCardHeader}>
-              <MaterialCommunityIcons name="hands-pray" size={20} color={COLORS.gold} />
+              <MaterialCommunityIcons name="hands-pray" size={20} color={colors.gold} />
               <Text style={styles.infoCardTitle}>{language === 'ar' ? 'دعاء اليوم' : language === 'en' ? 'Daily Supplication' : 'Günün Duası'}</Text>
               <TouchableOpacity
                 style={styles.shareBtn}
                 onPress={() => setShareData({ type: 'dua', title: duaTitle, arabic: dua.arabic, turkish: duaMeaning, source: dua.source })}
               >
-                <Ionicons name="share-social-outline" size={16} color={COLORS.textMuted} />
+                <Ionicons name="share-social-outline" size={16} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
             <Text style={styles.infoCardTitle2}>{duaTitle}</Text>
@@ -409,7 +494,7 @@ export default function HomeScreen() {
                     <Text style={styles.shareCancelText}>İptal</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.shareConfirmBtn} onPress={captureAndShare}>
-                    <Ionicons name="share-social" size={18} color={COLORS.background} />
+                    <Ionicons name="share-social" size={18} color={colors.background} />
                     <Text style={styles.shareConfirmText}>Paylaş</Text>
                   </TouchableOpacity>
                 </View>
@@ -422,136 +507,3 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-
-  // ── Hero ──────────────────────────────────────────────────────────────────
-  hero: { width, minHeight: 340 },
-  heroOverlay: {
-    flex: 1, minHeight: 340,
-    backgroundColor: 'rgba(5,8,18,0.62)',
-    paddingBottom: SPACING.md,
-  },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2,
-  },
-  headerBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  cityText: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', letterSpacing: 0.3 },
-
-  // Date block
-  dateContainer: { alignItems: 'center', paddingTop: SPACING.sm, paddingBottom: SPACING.lg },
-  dayText:   { color: 'rgba(255,255,255,0.55)', fontSize: FONT_SIZE.xs, letterSpacing: 2, textTransform: 'uppercase' },
-  dateText:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.xxl, fontWeight: '700', marginVertical: 3, letterSpacing: 0.3 },
-  hijriText: { color: COLORS.gold, fontSize: FONT_SIZE.sm, letterSpacing: 0.5, opacity: 0.9 },
-
-  // Next prayer card — full-width, prominent
-  nextPrayerCard: {
-    marginHorizontal: SPACING.md,
-    backgroundColor: 'rgba(8,12,22,0.82)',
-    borderColor: 'rgba(212,168,75,0.35)',
-    borderWidth: 1,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    overflow: 'hidden',
-  },
-  nextPrayerLabel: { color: COLORS.textMuted, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
-  nextPrayerName:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', marginBottom: SPACING.sm },
-  nextPrayerLeft:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  nextPrayerIconBox: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: 'rgba(212,168,75,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  countdownBox:  { alignItems: 'flex-end', marginTop: 4 },
-  countdownText: {
-    color: COLORS.gold,
-    fontSize: FONT_SIZE.xxxl,
-    fontWeight: '800',
-    letterSpacing: 4,
-    fontVariant: ['tabular-nums'],
-    includeFontPadding: false,
-  },
-  countdownLabel: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, letterSpacing: 1, marginTop: 2 },
-
-  // ── Body sections ─────────────────────────────────────────────────────────
-  section:      { paddingHorizontal: SPACING.md, marginTop: SPACING.lg },
-  sectionTitle: { color: COLORS.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: SPACING.sm },
-
-  // Prayer list card
-  card: {
-    backgroundColor: COLORS.cardBg,
-    borderColor: COLORS.cardBorder, borderWidth: 1,
-    borderRadius: RADIUS.xl, overflow: 'hidden',
-  },
-  prayerRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: 14 },
-  prayerRowBorder: { borderBottomColor: COLORS.cardBorder, borderBottomWidth: 1 },
-  prayerRowActive: { backgroundColor: COLORS.goldGlow },
-  prayerLeft:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm + 2 },
-  prayerName:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '500' },
-  prayerRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  prayerTime:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700', fontVariant: ['tabular-nums'] },
-
-  // Info cards — hadith & dua
-  infoCard: {
-    backgroundColor: COLORS.cardBg,
-    borderColor: COLORS.cardBorder, borderWidth: 1,
-    borderRadius: RADIUS.xl, padding: SPACING.lg,
-    borderLeftColor: COLORS.gold, borderLeftWidth: 3,
-  },
-  infoCardHeader:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md },
-  infoCardTitle:   { color: COLORS.gold, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, flex: 1 },
-  infoCardTitle2:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700', marginBottom: SPACING.sm },
-  infoCardText:    { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, lineHeight: 22 },
-  arabicText:      { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, lineHeight: 38, textAlign: 'right', marginVertical: SPACING.sm, fontWeight: '300' },
-  infoCardSource:  { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, marginTop: SPACING.sm, letterSpacing: 0.3 },
-  shareBtn:        { padding: 6, marginLeft: 'auto' as any },
-
-  // ── Notification panel ────────────────────────────────────────────────────
-  headerBtnGroup: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  badge:          { position: 'absolute', top: 6, right: 6, minWidth: 15, height: 15, borderRadius: 8, backgroundColor: COLORS.red, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  badgeText:      { color: '#fff', fontSize: 9, fontWeight: '800' },
-  // Notification settings modal
-  notifSettingsSheet:  { marginHorizontal: SPACING.md, marginBottom: SPACING.xl, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorderActive, padding: SPACING.lg, paddingBottom: SPACING.xl },
-  sheetHandle:         { width: 36, height: 4, borderRadius: 2, backgroundColor: COLORS.cardBorder, alignSelf: 'center', marginBottom: SPACING.md },
-  notifSettingsHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.md, paddingBottom: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
-  notifSettingsTitle:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  notifSettingRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm + 2 },
-  notifSettingBorder:  { borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
-  notifSettingIcon:    { marginRight: SPACING.sm },
-  notifSettingLabel:   { flex: 1, color: COLORS.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '500' },
-  notifLangRow:        { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder, marginBottom: SPACING.xs },
-  notifLangTitle:      { color: COLORS.textMuted, fontSize: FONT_SIZE.xs, flex: 1 },
-  notifLangBtn:        { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.cardBorder },
-  notifLangBtnActive:  { borderColor: COLORS.gold, backgroundColor: 'rgba(200,168,83,0.15)' },
-  notifLangBtnText:    { color: COLORS.textMuted, fontSize: 11, fontWeight: '600' },
-  notifLangBtnTextActive: { color: COLORS.gold },
-  modalBackdrop:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)' },
-  notifPanel:     { margin: SPACING.md, marginTop: 90, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorderActive, overflow: 'hidden' },
-  notifPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
-  notifPanelTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  markAllBtn:     { paddingHorizontal: SPACING.sm, paddingVertical: 5, backgroundColor: COLORS.goldGlow, borderRadius: RADIUS.full },
-  markAllText:    { color: COLORS.gold, fontSize: FONT_SIZE.xs, fontWeight: '700' },
-  notifEmpty:     { alignItems: 'center', padding: SPACING.xl, gap: SPACING.sm },
-  notifEmptyText: { color: COLORS.textMuted, fontSize: FONT_SIZE.sm },
-  notifItem:      { flexDirection: 'row', alignItems: 'flex-start', padding: SPACING.md, gap: SPACING.sm, backgroundColor: 'rgba(212,168,75,0.04)' },
-  notifItemRead:  { backgroundColor: 'transparent' },
-  notifIconBox:   { width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.goldGlow, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  notifContent:   { flex: 1 },
-  notifTitle:     { color: COLORS.textPrimary, fontSize: FONT_SIZE.sm, fontWeight: '700', marginBottom: 2 },
-  notifBody:      { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, lineHeight: 17 },
-  notifTime:      { color: COLORS.textMuted, fontSize: 10, marginTop: 4 },
-  unreadDot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.gold, marginTop: 5, flexShrink: 0 },
-
-  // ── Share modal ───────────────────────────────────────────────────────────
-  shareModalBg:      { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center', padding: SPACING.md },
-  shareModalContent: { width: '100%', alignItems: 'center', gap: SPACING.md },
-  shareModalTitle:   { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  shareModalBtns:    { flexDirection: 'row', gap: SPACING.sm, width: '100%' },
-  shareCancelBtn:    { flex: 1, paddingVertical: SPACING.sm + 4, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', borderWidth: 1, borderColor: COLORS.cardBorderActive },
-  shareCancelText:   { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, fontWeight: '600' },
-  shareConfirmBtn:   { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: SPACING.sm + 4, borderRadius: RADIUS.lg, backgroundColor: COLORS.gold },
-  shareConfirmText:  { color: COLORS.background, fontSize: FONT_SIZE.md, fontWeight: '800' },
-});

@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from '../i18n';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { usePrayerStore, type PrayerCompletion } from '../store/usePrayerStore';
 import { useDhikrStore, type DhikrHistory } from '../store/useDhikrStore';
 
@@ -103,12 +104,12 @@ const DEFS: AchievementDef[] = [
   { id: 'fajr_7',           titleKey: 'achFajrMaster',  descKey: 'achFajrMasterDesc',  icon: 'weather-night',       color: '#7B61FF', category: 'achTabPrayer', xp: 100, goal: 7,    getValue: (c) => prayerStreak(c, 'fajr') },
   { id: 'asr_7',            titleKey: 'achAsrMaster',   descKey: 'achAsrMasterDesc',   icon: 'weather-partly-cloudy', color: '#2196F3', category: 'achTabPrayer', xp: 100, goal: 7,   getValue: (c) => prayerStreak(c, 'asr') },
   { id: 'isha_7',           titleKey: 'achIshaMaster',  descKey: 'achIshaMasterDesc',  icon: 'moon-waning-crescent', color: '#9C27B0', category: 'achTabPrayer', xp: 100, goal: 7,   getValue: (c) => prayerStreak(c, 'isha') },
-  { id: 'prayers_50',       titleKey: 'achPrayer50',    descKey: 'achPrayer50Desc',    icon: 'mosque',              color: COLORS.gold, category: 'achTabPrayer', xp: 150, goal: 50, getValue: (c) => totalPrayersEver(c) },
+  { id: 'prayers_50',       titleKey: 'achPrayer50',    descKey: 'achPrayer50Desc',    icon: 'mosque',              color: '#D4A84B', category: 'achTabPrayer', xp: 150, goal: 50, getValue: (c) => totalPrayersEver(c) },
   { id: 'prayers_200',      titleKey: 'achPrayer200',   descKey: 'achPrayer200Desc',   icon: 'mosque',              color: '#FF8C42', category: 'achTabPrayer', xp: 300, goal: 200,  getValue: (c) => totalPrayersEver(c) },
   { id: 'streak_30',        titleKey: 'achStreak30',    descKey: 'achStreak30Desc',    icon: 'fire',                color: '#FF5722', category: 'achTabOther',  xp: 200, goal: 30,   getValue: (c) => anyPrayerStreak(c) },
   { id: 'friday_4',         titleKey: 'achFriday',      descKey: 'achFridayDesc',      icon: 'calendar-check',      color: '#4CAF50', category: 'achTabPrayer', xp: 150, goal: 4,    getValue: (c) => fridayStreak(c) },
   { id: 'active_7',         titleKey: 'achWeekHero',    descKey: 'achWeekHeroDesc',    icon: 'shield-star',         color: '#00BCD4', category: 'achTabOther',  xp: 100, goal: 7,    getValue: (c) => Math.min(activeDays(c), 7) },
-  { id: 'dhikr_100',        titleKey: 'achDhikr100',    descKey: 'achDhikr100Desc',    icon: 'circle-outline',      color: COLORS.gold, category: 'achTabDhikr', xp: 75,  goal: 100, getValue: (_, h) => totalDhikrById(h, 'subhanallah') },
+  { id: 'dhikr_100',        titleKey: 'achDhikr100',    descKey: 'achDhikr100Desc',    icon: 'circle-outline',      color: '#D4A84B', category: 'achTabDhikr', xp: 75,  goal: 100, getValue: (_, h) => totalDhikrById(h, 'subhanallah') },
   { id: 'dhikr_500',        titleKey: 'achDhikr500',    descKey: 'achDhikr500Desc',    icon: 'circle-double',       color: '#C8A853', category: 'achTabDhikr', xp: 150, goal: 500,  getValue: (_, h) => totalDhikrById(h, 'subhanallah') },
   { id: 'salavat_100',      titleKey: 'achSalavat100',  descKey: 'achSalavat100Desc',  icon: 'rotate-right',        color: '#FF8C42', category: 'achTabDhikr', xp: 100, goal: 100,  getValue: (_, h) => totalDhikrById(h, 'salavat') },
   { id: 'istigfar_100',     titleKey: 'achIstigfar100', descKey: 'achIstigfar100Desc', icon: 'hands-pray',          color: '#E91E63', category: 'achTabDhikr', xp: 100, goal: 100,  getValue: (_, h) => totalDhikrById(h, 'istigfar') },
@@ -136,6 +137,8 @@ function getLevel(xp: number) {
 
 export default function AchievementsScreen() {
   const { t } = useTranslation();
+  const { colors, fs } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const router = useRouter();
   const { completion } = usePrayerStore();
   const { history } = useDhikrStore();
@@ -160,7 +163,7 @@ export default function AchievementsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       {/* Detail Modal */}
       <Modal visible={!!detailItem} transparent animationType="fade" onRequestClose={() => setDetail(null)}>
@@ -169,8 +172,8 @@ export default function AchievementsScreen() {
             {detailItem && (
               <>
                 <View style={[styles.detailIconBox, { backgroundColor: detailItem.color + '22' }]}>
-                  <MaterialCommunityIcons name={detailItem.icon as any} size={48} color={detailItem.unlocked ? detailItem.color : COLORS.textMuted} />
-                  {!detailItem.unlocked && <View style={styles.lockBadge}><Ionicons name="lock-closed" size={16} color={COLORS.textMuted} /></View>}
+                  <MaterialCommunityIcons name={detailItem.icon as any} size={48} color={detailItem.unlocked ? detailItem.color : colors.textMuted} />
+                  {!detailItem.unlocked && <View style={styles.lockBadge}><Ionicons name="lock-closed" size={16} color={colors.textMuted} /></View>}
                 </View>
                 <Text style={styles.detailTitle}>{t(detailItem.titleKey as any)}</Text>
                 <Text style={styles.detailDesc}>{t(detailItem.descKey as any)}</Text>
@@ -184,7 +187,7 @@ export default function AchievementsScreen() {
                 <Text style={styles.detailPct}>{t('achCompleted', { pct: detailItem.pct })}</Text>
                 {detailItem.unlocked && (
                   <View style={styles.unlockedBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.green} />
+                    <Ionicons name="checkmark-circle" size={16} color={colors.green} />
                     <Text style={styles.unlockedText}>{t('achUnlocked')}</Text>
                   </View>
                 )}
@@ -196,7 +199,7 @@ export default function AchievementsScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('achievementsTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -205,7 +208,7 @@ export default function AchievementsScreen() {
       {/* Level card */}
       <View style={styles.levelCard}>
         <View style={styles.hexWrap}>
-          <MaterialCommunityIcons name="hexagon" size={64} color={COLORS.gold} />
+          <MaterialCommunityIcons name="hexagon" size={64} color={colors.gold} />
           <Text style={styles.hexLevel}>{levelInfo.level}</Text>
         </View>
         <View style={styles.levelInfo}>
@@ -255,24 +258,24 @@ export default function AchievementsScreen() {
             onPress={() => setDetail(item)}
             activeOpacity={0.75}
           >
-            <View style={[styles.cellIcon, { backgroundColor: item.unlocked ? item.color + '30' : COLORS.cardBorder }]}>
+            <View style={[styles.cellIcon, { backgroundColor: item.unlocked ? item.color + '30' : colors.cardBorder }]}>
               <MaterialCommunityIcons
                 name={item.icon as any}
                 size={28}
-                color={item.unlocked ? item.color : COLORS.textMuted}
+                color={item.unlocked ? item.color : colors.textMuted}
               />
               {!item.unlocked && (
                 <View style={styles.lockOverlay}>
-                  <Ionicons name="lock-closed" size={12} color={COLORS.textMuted} />
+                  <Ionicons name="lock-closed" size={12} color={colors.textMuted} />
                 </View>
               )}
             </View>
-            <Text style={[styles.cellTitle, !item.unlocked && { color: COLORS.textMuted }]} numberOfLines={2}>
+            <Text style={[styles.cellTitle, !item.unlocked && { color: colors.textMuted }]} numberOfLines={2}>
               {t(item.titleKey as any)}
             </Text>
             {/* Mini progress bar */}
             <View style={styles.miniBar}>
-              <View style={[styles.miniFill, { width: `${item.pct}%`, backgroundColor: item.unlocked ? item.color : COLORS.gold }]} />
+              <View style={[styles.miniFill, { width: `${item.pct}%`, backgroundColor: item.unlocked ? item.color : colors.gold }]} />
             </View>
             <Text style={styles.miniPct}>{item.pct}%</Text>
           </TouchableOpacity>
@@ -282,62 +285,62 @@ export default function AchievementsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: COLORS.background },
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container:  { flex: 1, backgroundColor: colors.background },
   header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
   backBtn:    { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:{ color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
+  headerTitle:{ color: colors.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
 
   // Level card
-  levelCard:  { flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.md, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.md, marginBottom: SPACING.sm },
+  levelCard:  { flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.md, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.md, marginBottom: SPACING.sm },
   hexWrap:    { width: 64, height: 64, alignItems: 'center', justifyContent: 'center' },
-  hexLevel:   { position: 'absolute', color: COLORS.background, fontSize: FONT_SIZE.xl, fontWeight: '900' },
+  hexLevel:   { position: 'absolute', color: colors.background, fontSize: FONT_SIZE.xl, fontWeight: '900' },
   levelInfo:  { flex: 1 },
-  levelTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
-  levelSub:   { color: COLORS.gold, fontSize: FONT_SIZE.xs, marginBottom: SPACING.xs },
-  xpBar:      { height: 8, backgroundColor: COLORS.cardBorder, borderRadius: 4, overflow: 'hidden', marginBottom: 3 },
-  xpFill:     { height: '100%', backgroundColor: COLORS.gold, borderRadius: 4 },
-  xpText:     { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  levelTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
+  levelSub:   { color: colors.gold, fontSize: FONT_SIZE.xs, marginBottom: SPACING.xs },
+  xpBar:      { height: 8, backgroundColor: colors.cardBorder, borderRadius: 4, overflow: 'hidden', marginBottom: 3 },
+  xpFill:     { height: '100%', backgroundColor: colors.gold, borderRadius: 4 },
+  xpText:     { color: colors.textMuted, fontSize: FONT_SIZE.xs },
   xpSummary:  { alignItems: 'center' },
-  xpSummaryVal:   { color: COLORS.gold, fontSize: FONT_SIZE.xxl, fontWeight: '700' },
-  xpSummaryLabel: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  xpSummaryVal:   { color: colors.gold, fontSize: FONT_SIZE.xxl, fontWeight: '700' },
+  xpSummaryLabel: { color: colors.textMuted, fontSize: FONT_SIZE.xs },
 
   // Progress row
   progressRow:  { paddingHorizontal: SPACING.md, marginBottom: SPACING.sm },
-  progressText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, marginBottom: 4 },
-  progressTrack:{ height: 5, backgroundColor: COLORS.cardBorder, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.gold, borderRadius: 3 },
+  progressText: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, marginBottom: 4 },
+  progressTrack:{ height: 5, backgroundColor: colors.cardBorder, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.gold, borderRadius: 3 },
 
   // Filters
   filterRow: { flexDirection: 'row', paddingHorizontal: SPACING.md, gap: SPACING.xs, marginBottom: SPACING.sm },
-  filterTab: { paddingHorizontal: SPACING.sm + 2, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1 },
-  filterTabActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
-  filterLabel: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
-  filterLabelActive: { color: COLORS.background, fontWeight: '700' },
+  filterTab: { paddingHorizontal: SPACING.sm + 2, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1 },
+  filterTabActive: { backgroundColor: colors.gold, borderColor: colors.gold },
+  filterLabel: { color: colors.textSecondary, fontSize: FONT_SIZE.xs, fontWeight: '500' },
+  filterLabelActive: { color: colors.background, fontWeight: '700' },
 
   // Grid cell
-  cell:       { flex: 1, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.sm, alignItems: 'center', gap: 4 },
+  cell:       { flex: 1, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.sm, alignItems: 'center', gap: 4 },
   cellLocked: { opacity: 0.65 },
   cellIcon:   { width: 56, height: 56, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  lockOverlay:{ position: 'absolute', bottom: 0, right: 0, backgroundColor: COLORS.cardBg, borderRadius: 8, padding: 2 },
-  cellTitle:  { color: COLORS.textPrimary, fontSize: FONT_SIZE.xs, fontWeight: '600', textAlign: 'center', lineHeight: 15 },
-  miniBar:    { width: '100%', height: 4, backgroundColor: COLORS.cardBorder, borderRadius: 2, overflow: 'hidden' },
+  lockOverlay:{ position: 'absolute', bottom: 0, right: 0, backgroundColor: colors.cardBg, borderRadius: 8, padding: 2 },
+  cellTitle:  { color: colors.textPrimary, fontSize: FONT_SIZE.xs, fontWeight: '600', textAlign: 'center', lineHeight: 15 },
+  miniBar:    { width: '100%', height: 4, backgroundColor: colors.cardBorder, borderRadius: 2, overflow: 'hidden' },
   miniFill:   { height: '100%', borderRadius: 2 },
-  miniPct:    { color: COLORS.textMuted, fontSize: 9 },
+  miniPct:    { color: colors.textMuted, fontSize: 9 },
 
   // Detail modal
   modalBack:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: SPACING.lg },
-  detailCard:  { width: '90%', backgroundColor: COLORS.cardBg, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.cardBorder, padding: SPACING.lg, alignItems: 'center', gap: SPACING.sm },
+  detailCard:  { width: '90%', backgroundColor: colors.cardBg, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: colors.cardBorder, padding: SPACING.lg, alignItems: 'center', gap: SPACING.sm },
   detailIconBox:   { width: 88, height: 88, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  lockBadge:       { position: 'absolute', bottom: 0, right: 0, backgroundColor: COLORS.cardBg, borderRadius: 12, padding: 3 },
-  detailTitle:     { color: COLORS.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', textAlign: 'center' },
-  detailDesc:      { color: COLORS.textSecondary, fontSize: FONT_SIZE.sm, textAlign: 'center' },
+  lockBadge:       { position: 'absolute', bottom: 0, right: 0, backgroundColor: colors.cardBg, borderRadius: 12, padding: 3 },
+  detailTitle:     { color: colors.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700', textAlign: 'center' },
+  detailDesc:      { color: colors.textSecondary, fontSize: FONT_SIZE.sm, textAlign: 'center' },
   detailProgressRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  detailProgressText:{ color: COLORS.textSecondary, fontSize: FONT_SIZE.sm },
+  detailProgressText:{ color: colors.textSecondary, fontSize: FONT_SIZE.sm },
   detailXP:        { fontSize: FONT_SIZE.sm, fontWeight: '700' },
-  detailBar:       { width: '100%', height: 10, backgroundColor: COLORS.cardBorder, borderRadius: 5, overflow: 'hidden' },
+  detailBar:       { width: '100%', height: 10, backgroundColor: colors.cardBorder, borderRadius: 5, overflow: 'hidden' },
   detailFill:      { height: '100%', borderRadius: 5 },
-  detailPct:       { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
+  detailPct:       { color: colors.textMuted, fontSize: FONT_SIZE.xs },
   unlockedBadge:   { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: RADIUS.full, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs },
-  unlockedText:    { color: COLORS.green, fontSize: FONT_SIZE.sm, fontWeight: '700' },
+  unlockedText:    { color: colors.green, fontSize: FONT_SIZE.sm, fontWeight: '700' },
 });

@@ -20,6 +20,8 @@ export interface AppSettings {
   customSoundUri?: string;
   customSoundName?: string;
   language: Language;
+  theme?: 'dark' | 'light';
+  fontSize?: 'normal' | 'large' | 'xlarge';
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -36,6 +38,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   calculationMethod: 'Turkey',
   notificationSound: 'ezan',
   language: 'tr',
+  theme: 'dark',
+  fontSize: 'normal',
 };
 
 interface SettingsStore {

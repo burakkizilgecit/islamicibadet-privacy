@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, StatusBar, Animated, Platform } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Magnetometer } from 'expo-sensors';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { SPACING, RADIUS, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { usePrayerStore } from '../../store/usePrayerStore';
 import { calculateQiblaDirection } from '../../services/prayerService';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
@@ -11,7 +12,29 @@ import { useTranslation } from '../../i18n';
 
 const MECCA = { lat: 21.3891, lng: 39.8579 };
 
+const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background, alignItems: 'center' },
+  header: { paddingVertical: SPACING.md, alignItems: 'center' },
+  headerTitle: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.xl), fontWeight: '700' },
+  headerSub: { color: colors.gold, fontSize: fs(FONT_SIZE.sm), marginTop: 2 },
+  compassContainer: { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginVertical: SPACING.lg },
+  compassRose: { position: 'absolute', width: 280, height: 280 },
+  arrowContainer: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  centerDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.gold, zIndex: 10 },
+  infoRow: { flexDirection: 'row', paddingHorizontal: SPACING.md, gap: SPACING.sm, marginTop: SPACING.lg },
+  infoBox: { flex: 1, backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', gap: SPACING.xs },
+  infoBoxCenter: { borderColor: colors.gold },
+  alignedBox: { borderColor: colors.green, backgroundColor: 'rgba(76,175,80,0.08)' },
+  infoLabel: { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs) },
+  infoValue: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.md), fontWeight: '700' },
+  alignedBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginTop: SPACING.md, backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: RADIUS.full, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
+  alignedText: { color: colors.green, fontSize: fs(FONT_SIZE.md), fontWeight: '600' },
+  permissionBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginTop: SPACING.md, backgroundColor: 'rgba(200,168,83,0.1)', borderRadius: RADIUS.md, padding: SPACING.md },
+  permissionText: { color: colors.textSecondary, fontSize: fs(FONT_SIZE.xs), flex: 1 },
+});
+
 export default function QiblaScreen() {
+  const { colors, fs } = useTheme();
   const { location } = usePrayerStore();
   const { t } = useTranslation();
   const [magnetometer, setMagnetometer] = useState(0);
@@ -46,6 +69,7 @@ export default function QiblaScreen() {
     return () => subscription?.remove();
   }, []);
 
+  const styles = React.useMemo(() => makeStyles(colors, fs), [colors, fs]);
   const compassRotation = hasPermission ? (360 - magnetometer) % 360 : 0;
   const arrowRotation = (qiblaAngle - magnetometer + 360) % 360;
 
@@ -61,7 +85,7 @@ export default function QiblaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('qiblaTitle')}</Text>
@@ -78,8 +102,8 @@ export default function QiblaScreen() {
         >
           <Svg width={280} height={280} viewBox="0 0 280 280">
             {/* Outer ring */}
-            <Circle cx="140" cy="140" r="130" stroke={COLORS.cardBorder} strokeWidth="2" fill="none" />
-            <Circle cx="140" cy="140" r="110" stroke={COLORS.cardBorder} strokeWidth="1" fill="none" strokeDasharray="4 8" />
+            <Circle cx="140" cy="140" r="130" stroke={colors.cardBorder} strokeWidth="2" fill="none" />
+            <Circle cx="140" cy="140" r="110" stroke={colors.cardBorder} strokeWidth="1" fill="none" strokeDasharray="4 8" />
             {/* Degree marks */}
             {Array.from({ length: 36 }, (_, i) => {
               const a = (i * 10 * Math.PI) / 180;
@@ -89,13 +113,13 @@ export default function QiblaScreen() {
               const y1 = 140 - r1 * Math.cos(a);
               const x2 = 140 + r2 * Math.sin(a);
               const y2 = 140 - r2 * Math.cos(a);
-              return <Line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={i % 9 === 0 ? COLORS.gold : COLORS.cardBorder} strokeWidth={i % 9 === 0 ? 2 : 1} />;
+              return <Line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={i % 9 === 0 ? colors.gold : colors.cardBorder} strokeWidth={i % 9 === 0 ? 2 : 1} />;
             })}
             {/* Cardinal labels */}
             {cardinals.map(({ label, angle }) => {
               const rad = (angle * Math.PI) / 180;
               return (
-                <SvgText key={label} x={140 + 97 * Math.sin(rad)} y={140 - 97 * Math.cos(rad) + 5} textAnchor="middle" fill={angle === 0 ? COLORS.red : COLORS.textSecondary} fontSize="14" fontWeight="bold">
+                <SvgText key={label} x={140 + 97 * Math.sin(rad)} y={140 - 97 * Math.cos(rad) + 5} textAnchor="middle" fill={angle === 0 ? colors.red : colors.textSecondary} fontSize="14" fontWeight="bold">
                   {label}
                 </SvgText>
               );
@@ -108,7 +132,7 @@ export default function QiblaScreen() {
           <MaterialCommunityIcons
             name="navigation"
             size={60}
-            color={isAligned ? COLORS.green : COLORS.gold}
+            color={isAligned ? colors.green : colors.gold}
           />
         </View>
 
@@ -119,19 +143,19 @@ export default function QiblaScreen() {
       {/* Info */}
       <View style={styles.infoRow}>
         <View style={styles.infoBox}>
-          <Ionicons name="compass-outline" size={20} color={COLORS.gold} />
+          <Ionicons name="compass-outline" size={20} color={colors.gold} />
           <Text style={styles.infoLabel}>{t('qiblaCompass')}</Text>
           <Text style={styles.infoValue}>{compassDeg}</Text>
         </View>
         <View style={[styles.infoBox, styles.infoBoxCenter, isAligned && styles.alignedBox]}>
-          <MaterialCommunityIcons name="mosque" size={20} color={isAligned ? COLORS.green : COLORS.gold} />
+          <MaterialCommunityIcons name="mosque" size={20} color={isAligned ? colors.green : colors.gold} />
           <Text style={styles.infoLabel}>{t('tabQibla')}</Text>
-          <Text style={[styles.infoValue, isAligned && { color: COLORS.green }]}>{qiblaDeg}</Text>
+          <Text style={[styles.infoValue, isAligned && { color: colors.green }]}>{qiblaDeg}</Text>
         </View>
         <View style={styles.infoBox}>
-          <MaterialCommunityIcons name="map-marker-distance" size={20} color={COLORS.gold} />
+          <MaterialCommunityIcons name="map-marker-distance" size={20} color={colors.gold} />
           <Text style={styles.infoLabel}>{t('qiblaStatus')}</Text>
-          <Text style={[styles.infoValue, { fontSize: FONT_SIZE.xs, color: isAligned ? COLORS.green : COLORS.textSecondary }]}>
+          <Text style={[styles.infoValue, { fontSize: FONT_SIZE.xs, color: isAligned ? colors.green : colors.textSecondary }]}>
             {isAligned ? t('qiblaAligned') : `${diff.toFixed(0)}° ${t('qiblaDiff')}`}
           </Text>
         </View>
@@ -139,14 +163,14 @@ export default function QiblaScreen() {
 
       {isAligned && (
         <View style={styles.alignedBanner}>
-          <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.green} />
+          <MaterialCommunityIcons name="check-circle" size={20} color={colors.green} />
           <Text style={styles.alignedText}>{t('qiblaDirected')}</Text>
         </View>
       )}
 
       {!hasPermission && (
         <View style={styles.permissionBanner}>
-          <Ionicons name="warning-outline" size={18} color={COLORS.gold} />
+          <Ionicons name="warning-outline" size={18} color={colors.gold} />
           <Text style={styles.permissionText}>{t('qiblaSensorNote')}</Text>
         </View>
       )}
@@ -154,23 +178,3 @@ export default function QiblaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center' },
-  header: { paddingVertical: SPACING.md, alignItems: 'center' },
-  headerTitle: { color: COLORS.textPrimary, fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  headerSub: { color: COLORS.gold, fontSize: FONT_SIZE.sm, marginTop: 2 },
-  compassContainer: { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginVertical: SPACING.lg },
-  compassRose: { position: 'absolute', width: 280, height: 280 },
-  arrowContainer: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  centerDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.gold, zIndex: 10 },
-  infoRow: { flexDirection: 'row', paddingHorizontal: SPACING.md, gap: SPACING.sm, marginTop: SPACING.lg },
-  infoBox: { flex: 1, backgroundColor: COLORS.cardBg, borderColor: COLORS.cardBorder, borderWidth: 1, borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', gap: SPACING.xs },
-  infoBoxCenter: { borderColor: COLORS.gold },
-  alignedBox: { borderColor: COLORS.green, backgroundColor: 'rgba(76,175,80,0.08)' },
-  infoLabel: { color: COLORS.textMuted, fontSize: FONT_SIZE.xs },
-  infoValue: { color: COLORS.textPrimary, fontSize: FONT_SIZE.md, fontWeight: '700' },
-  alignedBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginTop: SPACING.md, backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: RADIUS.full, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
-  alignedText: { color: COLORS.green, fontSize: FONT_SIZE.md, fontWeight: '600' },
-  permissionBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginTop: SPACING.md, backgroundColor: 'rgba(200,168,83,0.1)', borderRadius: RADIUS.md, padding: SPACING.md },
-  permissionText: { color: COLORS.textSecondary, fontSize: FONT_SIZE.xs, flex: 1 },
-});
