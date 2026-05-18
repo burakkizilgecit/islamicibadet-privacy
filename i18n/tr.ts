@@ -1,5 +1,5 @@
 export const tr = {
-  appName: 'İbadet Saati',
+  appName: 'İbadet Rehberi',
   // Tabs
   tabHome: 'Ana Sayfa', tabPrayer: 'Vakitler', tabQibla: 'Kıble',
   tabDhikr: 'Zikir', tabMosques: 'Camiler', tabMenu: 'Menü',
@@ -161,9 +161,9 @@ export const tr = {
   // Duas
   duasTitle: 'Dualar',
   // Tutorial
-  tutorialWelcomeTitle: "İbadet Saati'ne\nHoş Geldiniz",
+  tutorialWelcomeTitle: "İbadet Rehberi'ne\nHoş Geldiniz",
   tutorialWelcomeDesc: 'Günlük ibadetlerinizi düzenli tutmanıza yardımcı olan kapsamlı İslami yaşam uygulaması.',
   tutorialFinishTitle: 'Her Şey Hazır!',
-  tutorialFinishDesc: "İbadet Saati ile günlük ibadetlerinizi düzenli, bilinçli ve huzurlu şekilde sürdürün.\n\nAllah kabul etsin 🤲",
+  tutorialFinishDesc: "İbadet Rehberi ile günlük ibadetlerinizi düzenli, bilinçli ve huzurlu şekilde sürdürün.\n\nAllah kabul etsin 🤲",
 };
 export type TKey = keyof typeof tr;

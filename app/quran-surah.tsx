@@ -122,7 +122,7 @@ export default function QuranSurahScreen() {
   };
 
   const shareVerse = async (verse: Verse) => {
-    const text = `${meta?.nameTurkish} Suresi, ${verse.number}. Ayet\n\n${verse.arabic}\n\n"${verse.turkish}"\n\n— İslami İbadet Uygulaması`;
+    const text = `${meta?.nameTurkish} Suresi, ${verse.number}. Ayet\n\n${verse.arabic}\n\n"${verse.turkish}"\n\n— İbadet Rehberi`;
     await Share.share({ message: text });
   };
 

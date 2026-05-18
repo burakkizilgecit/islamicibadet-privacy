@@ -361,7 +361,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>{t('settingsSound')}</Text>
         <Text style={styles.sectionDesc}>Namaz vakti bildirimlerinde çalacak sesi seçin.</Text>
         <View style={styles.card}>
-          {SOUNDS.map((s, i) => {
+          {SOUNDS.map((s) => {
             const active = settings.notificationSound === s.key;
             return (
               <TouchableOpacity
@@ -535,14 +535,14 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.settingInfo}>
               <Text style={styles.settingLabel}>Uygulama Sürümü</Text>
-              <Text style={styles.settingDesc2}>İslami İbadet v{APP_VERSION}</Text>
+              <Text style={styles.settingDesc2}>İbadet Rehberi v{APP_VERSION}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.appInfo}>
           <MaterialCommunityIcons name="mosque" size={32} color={COLORS.gold} style={{ opacity: 0.5 }} />
-          <Text style={styles.appName}>İslami İbadet</Text>
+          <Text style={styles.appName}>İbadet Rehberi</Text>
           <Text style={styles.appVersion}>Sürüm {APP_VERSION}</Text>
           <Text style={styles.appCopyright}>© 2025 Tüm hakları saklıdır.</Text>
         </View>

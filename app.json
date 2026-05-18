@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "İbadet Saati",
+    "name": "İbadet Rehberi",
     "slug": "islamicibadet",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -103,7 +103,7 @@
           "widgets": [
             {
               "name": "PrayerWidget",
-              "label": "İbadet Saati — Namaz Vakti",
+              "label": "İbadet Rehberi — Namaz Vakti",
               "description": "Sıradaki namaz vaktini ana ekranınızda görün",
               "previewImage": "./assets/images/icon.png",
               "minWidth": "250dp",
