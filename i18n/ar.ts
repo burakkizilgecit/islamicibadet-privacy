@@ -83,7 +83,6 @@ export const ar: Record<TKey, string> = {
   notifIslamicDays: 'المناسبات الإسلامية', notifIslamicDaysDesc: 'إشعارات للأعياد والمناسبات',
   soundEzan: 'الأذان', soundEzanDesc: 'نداء الصلاة العربي التقليدي',
   soundIlahi: 'إلاهي', soundIlahiDesc: 'لحن ديني تركي',
-  soundSalavat: 'الصلاة على النبي', soundSalavatDesc: 'الصلاة والسلام على رسول الله ﷺ',
   moreTitle: 'القائمة',
   moreQuran: 'القرآن الكريم', moreQuranSub: 'اقرأ السور · استمع للتلاوة',
   moreDuas: 'الأدعية', moreDuasSub: 'الأدعية والأذكار اليومية',

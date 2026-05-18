@@ -97,7 +97,6 @@ export const tr = {
   // Sounds
   soundEzan: 'Ezan', soundEzanDesc: 'Geleneksel Arapça ezan sesi',
   soundIlahi: 'İlahi', soundIlahiDesc: 'Türkçe dinî ilahi melodisi',
-  soundSalavat: 'Salavat', soundSalavatDesc: "Hz. Peygamber'e salavat-ı şerife",
   // More menu
   moreTitle: 'Menü',
   moreQuran: "Kur'an-ı Kerim", moreQuranSub: 'Sure oku · Ayet dinle',

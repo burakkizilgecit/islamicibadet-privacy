@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { saveData, loadData, STORAGE_KEYS } from '../services/storageService';
 
-export type NotificationSound = 'ezan' | 'ilahi' | 'salavat' | 'custom';
+export type NotificationSound = 'ezan' | 'ilahi' | 'custom';
 export type Language = 'tr' | 'en' | 'ar';
 
 export interface AppSettings {

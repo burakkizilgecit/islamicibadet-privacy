@@ -23,21 +23,14 @@ const SOUNDS: { key: NotificationSound; label: string; desc: string; icon: strin
     label: 'Ezan',
     desc: 'Geleneksel Arapça ezan sesi',
     icon: 'mosque',
-    file: require('../assets/sounds/ezan.wav'),
+    file: require('../assets/sounds/ezan.mp3'),
   },
   {
     key: 'ilahi',
     label: 'İlahi',
     desc: 'Türkçe dinî ilahi melodisi',
     icon: 'music-note',
-    file: require('../assets/sounds/ilahi.wav'),
-  },
-  {
-    key: 'salavat',
-    label: 'Salavat',
-    desc: 'Hz. Peygamber\'e salavat-ı şerife',
-    icon: 'star-crescent',
-    file: require('../assets/sounds/salavat.wav'),
+    file: require('../assets/sounds/ilahi.mp3'),
   },
 ];
 import { COLORS, SPACING, RADIUS, FONT_SIZE } from '../constants/theme';

@@ -62,9 +62,8 @@
           "icon": "./assets/images/icon.png",
           "color": "#C8A853",
           "sounds": [
-            "./assets/sounds/ezan.wav",
-            "./assets/sounds/ilahi.wav",
-            "./assets/sounds/salavat.wav"
+            "./assets/sounds/ezan.mp3",
+            "./assets/sounds/ilahi.mp3"
           ]
         }
       ],

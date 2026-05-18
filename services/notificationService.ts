@@ -15,13 +15,10 @@ export async function setupNotificationChannel() {
   };
 
   await Notifications.setNotificationChannelAsync('prayer_ezan', {
-    ...prayerBase, name: 'Namaz Vakitleri (Ezan)', sound: 'ezan.wav',
+    ...prayerBase, name: 'Namaz Vakitleri (Ezan)', sound: 'ezan.mp3',
   });
   await Notifications.setNotificationChannelAsync('prayer_ilahi', {
-    ...prayerBase, name: 'Namaz Vakitleri (İlahi)', sound: 'ilahi.wav',
-  });
-  await Notifications.setNotificationChannelAsync('prayer_salavat', {
-    ...prayerBase, name: 'Namaz Vakitleri (Salavat)', sound: 'salavat.wav',
+    ...prayerBase, name: 'Namaz Vakitleri (İlahi)', sound: 'ilahi.mp3',
   });
   await Notifications.setNotificationChannelAsync('reminder', {
     name: 'Hatırlatmalar',
@@ -122,7 +119,7 @@ export async function scheduleAllNotifications(
         content: {
           title: msg.title,
           body: msg.body,
-          sound: Platform.OS === 'ios' ? `${settings.notificationSound ?? 'ezan'}.wav` : true,
+          sound: Platform.OS === 'ios' ? `${settings.notificationSound ?? 'ezan'}.mp3` : true,
           data: { type: 'prayer', prayer },
           ...(Platform.OS === 'android' && { channelId: prayerChannelId }),
         },
