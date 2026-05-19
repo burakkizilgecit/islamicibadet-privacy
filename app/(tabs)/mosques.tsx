@@ -500,8 +500,8 @@ const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, backgroundColor: 'rgba(11,15,26,0.88)', borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { color: colors.textPrimary, fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  headerSub: { color: colors.textMuted, fontSize: 11, marginTop: 1 },
+  headerTitle: { color: '#FFFFFF', fontSize: FONT_SIZE.lg, fontWeight: '700' },
+  headerSub: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 },
   locateBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(200,168,83,0.15)', borderWidth: 1, borderColor: 'rgba(200,168,83,0.35)', alignItems: 'center', justifyContent: 'center' },
   recenterBtn: { position: 'absolute', top: height * 0.42 - 48, right: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardBg, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
 

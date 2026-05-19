@@ -63,19 +63,19 @@ const makeStyles = (colors: any, fs: (n: number) => number) => StyleSheet.create
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2 },
   headerBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  cityText: { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700', letterSpacing: 0.3 },
+  cityText: { color: '#FFFFFF', fontSize: fs(FONT_SIZE.lg), fontWeight: '700', letterSpacing: 0.3 },
   dateContainer: { alignItems: 'center', paddingTop: SPACING.sm, paddingBottom: SPACING.lg },
   dayText:   { color: 'rgba(255,255,255,0.55)', fontSize: fs(FONT_SIZE.xs), letterSpacing: 2, textTransform: 'uppercase' },
-  dateText:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.xxl), fontWeight: '700', marginVertical: 3, letterSpacing: 0.3 },
+  dateText:  { color: '#FFFFFF', fontSize: fs(FONT_SIZE.xxl), fontWeight: '700', marginVertical: 3, letterSpacing: 0.3 },
   hijriText: { color: colors.gold, fontSize: fs(FONT_SIZE.sm), letterSpacing: 0.5, opacity: 0.9 },
   nextPrayerCard: { marginHorizontal: SPACING.md, backgroundColor: 'rgba(8,12,22,0.82)', borderColor: 'rgba(212,168,75,0.35)', borderWidth: 1, borderRadius: RADIUS.xl, padding: SPACING.md, paddingHorizontal: SPACING.lg, overflow: 'hidden' },
-  nextPrayerLabel: { color: colors.textMuted, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
-  nextPrayerName:  { color: colors.textPrimary, fontSize: fs(FONT_SIZE.lg), fontWeight: '700', marginBottom: SPACING.sm },
+  nextPrayerLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+  nextPrayerName:  { color: '#FFFFFF', fontSize: fs(FONT_SIZE.lg), fontWeight: '700', marginBottom: SPACING.sm },
   nextPrayerLeft:  { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   nextPrayerIconBox: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(212,168,75,0.15)', alignItems: 'center', justifyContent: 'center' },
   countdownBox:  { alignItems: 'flex-end', marginTop: 4 },
   countdownText: { color: colors.gold, fontSize: fs(FONT_SIZE.xxxl), fontWeight: '800', letterSpacing: 4, fontVariant: ['tabular-nums'], includeFontPadding: false },
-  countdownLabel: { color: colors.textMuted, fontSize: fs(FONT_SIZE.xs), letterSpacing: 1, marginTop: 2 },
+  countdownLabel: { color: 'rgba(255,255,255,0.6)', fontSize: fs(FONT_SIZE.xs), letterSpacing: 1, marginTop: 2 },
   section:      { paddingHorizontal: SPACING.md, marginTop: SPACING.lg },
   sectionTitle: { color: colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: SPACING.sm },
   card: { backgroundColor: colors.cardBg, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: RADIUS.xl, overflow: 'hidden' },
@@ -346,10 +346,10 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.headerBtnGroup}>
                   <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifSettings(true)}>
-                    <Ionicons name="settings-outline" size={22} color={colors.textPrimary} />
+                    <Ionicons name="settings-outline" size={22} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.headerBtn} onPress={() => setShowNotifs(true)}>
-                    <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+                    <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
                     {unreadCount > 0 && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
